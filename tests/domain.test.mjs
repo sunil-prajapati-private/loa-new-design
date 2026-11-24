@@ -17,11 +17,11 @@ test("Doctor-specific catalogues retain eligible procedures only", () => {
   assert.equal(catalogFor("m1", "DENT").length, 0);
   assert(!catalogFor("m2", "OPCON").some((p) => p.group === "RVS"));
 });
-test("Stale prices, unresolved rates and invalid quantities never show a number", () => {
+test("Stale prices, missing procedures and invalid quantities never show a number", () => {
   const line = newLine("m1", diagnoses, { code: "DEMO-M01" }); assert.equal(amountFor(line), 45000);
   assert.equal(amountFor({ ...line, stale: true }), null);
   assert.equal(amountFor({ ...line, quantity: "abc" }), null);
-  assert.equal(amountFor({ ...line, code: "DEMO-M08" }), null);
+  assert.equal(amountFor({ ...line, code: "UNKNOWN-PROCEDURE" }), null);
 });
 test("PAC is a total charge, independent of quantity", () => {
   const line = newLine("m1", diagnoses, { code: "DEMO-M05", quantity: "3", charge: "2450.50" });

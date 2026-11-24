@@ -4,8 +4,8 @@ A standalone React frontend for public design review. Uses a copy of the existin
 
 ## Try the journeys
 
-- **Dental & tooth selection:** member lookup, three independent procedure lines, doctor-specific catalogue, tooth chart, quadrant selection and sample extracted-tooth history.
-- **Fee schedule + PAC:** read-only scheduled amounts alongside an editable total line charge. Browse the catalogue for laterality and unresolved-price examples.
+- **Dental & tooth selection:** member lookup, three independent procedure lines, doctor-specific procedure dropdown, tooth chart, quadrant selection and sample extracted-tooth history.
+- **Fee schedule + PAC:** read-only scheduled amounts alongside an editable total line charge. Use the procedure dropdown for laterality examples.
 - **RVS doctors:** Main doctor before procedure selection, optional Assistant and Anesthetist, and review of exact line roles.
 - **Demo scenarios:** switch fictional organisations or members. Medical organisation cannot enable Dental; Nico's sample plan has no Dental benefit.
 - **Find member:** exact matching against three fictional card+DOB pairs, with loading, success and no-match states.
@@ -74,3 +74,5 @@ Claim scenarios cover source LOA amounts, missing-charge entry, and consultation
 Amount policy is a **design proposal informed by the current implementation**: populated source amounts stay read-only; absent source amounts permit manual entry. Existing zero remains read-only. This is not a discovered PAC-only gate. Current Add Claim renders amounts read-only, its validator requires a claimed amount, and the LOA response mapper supplies it from allowedAmount. Thus absent amounts have no entry path today. The proposed input closes that gap; production rule approval and implementation remain separate. A zero-covered consultation remains blocked for manual adjudication.
 
 Validation now includes 14 domain tests and browser journeys for both pages at 320, 375, 768 and 1440px, plus visual inspection of desktop and mobile captures.
+
+The separate procedure browse dialog and pricing-conflict sample have been removed from the review UI. Select procedures directly from the searchable dropdown.

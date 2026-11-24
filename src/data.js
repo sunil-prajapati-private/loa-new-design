@@ -41,7 +41,6 @@ export const PROCEDURES = [
   medical("DEMO-M06", "Diagnostic imaging package", 0, { pricing: "pac" }),
   medical("DEMO-M07", "Knee radiograph", 110000, { modifiers: ["Left", "Right", "Bilateral"] }),
   medical("DEMO-R01", "Surgical procedure — sample RVS", 1250000, { group: "RVS", doctors: ["m2", "m3"], modifiers: ["Left", "Right"] }),
-  medical("DEMO-M08", "Special procedure — unresolved rate", 0, { pricing: "conflict" }),
   ...["Initial consultation", "Follow-up consultation", "Medical clearance"].map((name, i) => medical("DEMO-C0" + (i + 1), name, 60000 + i * 10000, { types: ["OPCON"], doctors: DOCTORS.map((d) => d.id) })),
   medical("DEMO-P01", "Annual wellness package", 450000, { types: ["ACU"] }),
   medical("DEMO-P02", "Pre-employment screening package", 220000, { types: ["PEME"] }),

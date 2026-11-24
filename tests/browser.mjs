@@ -24,10 +24,9 @@ try {
   await expect(page.getByRole("button", { name: "Tooth 26 — previously extracted", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Tooth 17", exact: true }).click();
   await expect(page.getByRole("button", { name: "Tooth 17", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Browse 9 procedures" }).click();
-  await expect(page.getByRole("dialog")).toContainText("Root canal treatment");
-  await expect(page.getByRole("dialog").locator(".procedure-option")).toHaveCount(9);
-  await page.getByRole("button", { name: "Close procedure catalogue" }).click();
+  await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).click();
+  await expect(page.getByRole("option", { name: /Root canal treatment/ })).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.getByRole("combobox", { name: "Procedure doctor", exact: true }).fill("Ethan");
   await page.getByRole("option", { name: /Dr. Ethan Villanueva/ }).click();
   await expect(page.getByText("Doctor or request context changed.", { exact: false })).toBeVisible();
@@ -122,5 +121,5 @@ try {
   await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
   await page.screenshot({path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure browser", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }
