@@ -1,0 +1,32 @@
+{
+  "name": "gopartner-loa-review-demo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/domain.test.mjs",
+    "lint": "eslint src tests"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@mui/material": "6.5.0",
+    "@mui/icons-material": "6.5.0",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "lucide-react": "0.515.0"
+  },
+  "devDependencies": {
+    "vite": "6.4.3",
+    "@vitejs/plugin-react": "4.3.4",
+    "eslint": "9.21.0",
+    "@eslint/js": "9.21.0",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.4.19",
+    "globals": "15.15.0",
+    "@playwright/test": "1.63.0"
+  }
+}
