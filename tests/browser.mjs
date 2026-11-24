@@ -1,11 +1,15 @@
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
-const origin = "http://127.0.0.1:4178";
+const channel = process.env.LOA_DEMO_BROWSER_CHANNEL === "bundled"
+  ? undefined
+  : process.env.LOA_DEMO_BROWSER_CHANNEL ?? "chrome";
+const browser = await chromium.launch({ headless: true, channel });
+const origin = process.env.LOA_DEMO_URL ?? "http://127.0.0.1:4178/";
+const allowedOrigin = new URL(origin).origin;
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
 const errors = []; const external = [];
 page.on("pageerror", (error) => errors.push(error.message));
-await page.route("**/*", (route) => { if (!route.request().url().startsWith(origin)) { external.push(route.request().url()); return route.abort(); } return route.continue(); });
+await page.route("**/*", (route) => { if (new URL(route.request().url()).origin !== allowedOrigin) { external.push(route.request().url()); return route.abort(); } return route.continue(); });
 try {
   await mkdir("test-results", { recursive: true });
   await page.goto(origin);
