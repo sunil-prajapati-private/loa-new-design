@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
+import { deductionOptions, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
 import { MEMBERS, ORGANISATIONS } from "../src/data.js";
 const diagnoses = [{ code: "K02.9", rank: "Primary" }];
 test("Manila dates cross UTC midnight correctly", () => {
@@ -50,4 +50,26 @@ test("Repeated procedures are allowed on different teeth but not the same site",
   const form = { org: ORGANISATIONS[0], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[0], lines: [line, { ...line, id: "second", site: "17" }], files: [], complaint: "" };
   assert.deepEqual(requestErrors(form), []);
   assert(requestErrors({ ...form, lines: [line, { ...line, id: "second" }] }).some((error) => error.includes("Duplicate")));
+});
+
+test('OP Lab PhilHealth depends on class or this line, not another RVS line', () => {
+  const context = { type: 'OLP', medicalClass: 'MEDICAL', date: '2026-11-24' };
+  assert.equal(deductionOptions({ code: 'DEMO-M01' }, context).includes('PhilHealth'), false);
+  assert.equal(deductionOptions({ code: 'DEMO-R01' }, context).includes('PhilHealth'), true);
+  assert.equal(deductionOptions({ code: 'DEMO-M01' }, { ...context, medicalClass: 'SURGICAL' }).includes('PhilHealth'), true);
+  assert.equal(deductionOptions({ code: 'DEMO-D01' }, { ...context, type: 'DENT' }).includes('PhilHealth'), false);
+});
+
+test('Senior Citizen requires age at availment, citizenship and an eligible LOA type', () => {
+  const context = { type: 'OLP', date: '2026-11-24', member: { dob: '1966-11-25', citizenship: 'Filipino' } };
+  const line = { code: 'DEMO-M01' };
+  assert.equal(deductionOptions(line, context).includes('Senior Citizen'), false);
+  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25' }).includes('Senior Citizen'), true);
+  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25', member: { dob: '1966-11-25' } }).includes('Senior Citizen'), false);
+  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25', type: 'DENT' }).includes('Senior Citizen'), false);
+});
+
+test('Previously entered deductions cannot pass review after eligibility changes', () => {
+  const line = newLine('m1', diagnoses, { code: 'DEMO-M01', deductions: { PhilHealth: '100' } });
+  assert(lineErrors(line, 'OLP', MEMBERS[0], { type: 'OLP', medicalClass: 'MEDICAL', member: MEMBERS[0], date: '2026-11-24' }).some(message => message.includes('Remove PhilHealth')));
 });

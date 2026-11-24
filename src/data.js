@@ -13,7 +13,7 @@ export const DOCTORS = [
 ];
 export const MEMBERS = [
   { id: "demo-alina", name: "Alina Rivera", initials: "AR", card: "0000000000001001", dob: "1992-06-18", company: "Northstar Creative Co. (Demo)", plan: "Corporate Plus · Demo", expiry: "2027-12-31", status: "Active", dental: true, relationship: "Principal", extracted: ["26"], avatar: "#e5efff" },
-  { id: "demo-daniel", name: "Daniel Mercado", initials: "DM", card: "0000000000001002", dob: "1958-02-12", company: "Lighthouse Trading (Demo)", plan: "Corporate Premier · Demo", expiry: "2027-06-30", status: "Active", dental: true, relationship: "Dependent", extracted: ["18", "36"], avatar: "#e7f4ef" },
+  { id: "demo-daniel", citizenship: "Filipino", name: "Daniel Mercado", initials: "DM", card: "0000000000001002", dob: "1958-02-12", company: "Lighthouse Trading (Demo)", plan: "Corporate Premier · Demo", expiry: "2027-06-30", status: "Active", dental: true, relationship: "Dependent", extracted: ["18", "36"], avatar: "#e7f4ef" },
   { id: "demo-nico", name: "Nico Salcedo", initials: "NS", card: "0000000000001003", dob: "2001-09-08", company: "Pine Studio (Demo)", plan: "Medical Essentials · Demo", expiry: "2027-03-31", status: "Active", dental: false, relationship: "Principal", extracted: [], avatar: "#fff0dc" },
 ];
 export const TYPES = [{ code: "DENT", label: "Dental" }, { code: "OPCON", label: "Outpatient consultation" }, { code: "OLP", label: "OP Lab & Procedure" }, { code: "IP", label: "Inpatient" }, { code: "EMERG", label: "Emergency" }, { code: "PEME", label: "Pre-employment" }, { code: "ACU", label: "Annual checkup" }];

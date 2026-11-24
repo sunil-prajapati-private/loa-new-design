@@ -53,4 +53,13 @@ npm run preview -- --base /loa-new-design/
 LOA_DEMO_URL=http://127.0.0.1:4178/loa-new-design/ npm run test:browser
 ```
 
-The earlier Sites URL is independent and is not removed by this workflow. This task changes hosting only; the documented prototype limitations, including incomplete deduction controls, remain unchanged.
+The earlier Sites URL is independent and is not removed by this workflow. This task changes hosting only; the documented prototype limitations, including incomplete package and inpatient flows, remain unchanged.
+
+
+## Business review revision — 24 November 2026
+
+The form now follows the existing portal's `InputField`, `SelectField`, `PageWrapper` and `SectionHeader` styling: labels above fields, 16px input text, 14px labels, #B3B9C4 input borders, 8px input corners, theme button corners, white sections and a full-width form. The theme font stack is retained; no external font service is added. The summary follows the form. New procedure and tooth interactions remain proposed extensions.
+
+Content reviewed against the LOA implementation plan: mandatory card+DOB, diagnosis-first selection, organisation Dental access, both Dental categories, doctor per line, date window, PAC total charge, manual PHP deductions and simulated submission. Senior Citizen now requires age at availment of at least 60 plus explicit Filipino citizenship in the fictional member record and IP/ER/OP Lab. OP Lab PhilHealth requires Surgical class or that line's RVS procedure. Stale inapplicable deductions block review and can be deselected. No automatic discount or net-total formula is assumed.
+
+The visible **Business review scope** panel identifies incomplete coverage: real procedure/diagnosis/benefit eligibility, ACU/PEME entitlement, consultation-clearance rules, inpatient room entitlement, chief-complaint dropdown and OHI delivery of supplemental roles. Requester details remain deferred. The demo is suitable for reviewing interaction proposals, not signing off implementation completeness or OHI rule accuracy. Use only the supplied fictional records.

@@ -152,7 +152,10 @@ export const theme = createTheme({
         },
       },
     },
+    MuiInputLabel: { styleOverrides: { root: { position: 'static', transform: 'none', maxWidth: '100%', fontSize: '14px', fontWeight: 500, marginBottom: '4px', color: '#313030', '&.Mui-focused': { color: '#313030' } } } },
+    MuiOutlinedInput: { styleOverrides: { root: { fontSize: '16px', borderRadius: '8px', backgroundColor: '#fff', '& fieldset': { borderColor: '#B3B9C4', top: 0 }, '& legend': { display: 'none' } }, input: { padding: '9px 16px' } } },
     MuiTextField: {
+      defaultProps: { InputLabelProps: { shrink: true } },
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {

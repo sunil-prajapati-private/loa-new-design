@@ -13,7 +13,7 @@ export default function MemberSection({ card, dob, onInput, onLookup, loading, m
       {member && !loading && <div className="member-result">
         <Avatar sx={{ bgcolor: member.avatar, color: "primary.main", width: 52, height: 52, fontWeight: 600 }}>{member.initials}</Avatar>
         <div className="member-result-content"><div className="member-title"><h3>{member.name}</h3><Chip size="small" icon={<BadgeCheck size={14} />} label="Active · demo" color="success" variant="outlined" /></div><p>{member.company}</p>
-          <dl className="member-facts"><div><dt>Membership</dt><dd>{member.relationship}</dd></div><div><dt>Card expiry</dt><dd>{dateLabel(member.expiry)}</dd></div><div><dt>Plan</dt><dd>{member.plan}</dd></div><div><dt>Dental benefit</dt><dd>{member.dental ? "Included in sample plan" : "Not included"}</dd></div></dl>
+          <dl className="member-facts"><div><dt>Membership</dt><dd>{member.relationship}</dd></div><div><dt>Card expiry</dt><dd>{dateLabel(member.expiry)}</dd></div><div><dt>Plan</dt><dd>{member.plan}</dd></div><div><dt>Dental benefit</dt><dd>{member.dental ? "Included in sample plan" : "Not included"}</dd></div>{member.citizenship && <div><dt>Citizenship (sample)</dt><dd>{member.citizenship}</dd></div>}</dl>
         </div>
       </div>}
       {member && !member.dental && type === "DENT" && <Alert severity="warning" sx={{ mt: 1.5 }}>This sample member has no Dental benefit. The clinic can request Dental LOAs, but this member cannot complete this sample journey.</Alert>}

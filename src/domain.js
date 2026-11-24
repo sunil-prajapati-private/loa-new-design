@@ -25,7 +25,14 @@ export function amountFor(line) {
   if (!/^\d{1,2}$/.test(line.quantity) || Number(line.quantity) < 1) return null;
   return (procedure.cents + (line.doctorId === "d2" ? 10000 : 0)) * Number(line.quantity || 0);
 }
-export function lineErrors(line, type, member) {
+export function deductionOptions(line, { type, member, date, medicalClass }) {
+  const options = [];
+  if (["IP", "EMERG"].includes(type) || (type === "OLP" && (medicalClass === "SURGICAL" || procedureFor(line)?.group === "RVS"))) options.push("PhilHealth");
+  const age = member?.dob && date ? Number(date.slice(0, 4)) - Number(member.dob.slice(0, 4)) - (date.slice(5) < member.dob.slice(5) ? 1 : 0) : 0;
+  if (["IP", "EMERG", "OLP"].includes(type) && age >= 60 && member?.citizenship === "Filipino") options.push("Senior Citizen");
+  return [...options, "PWD discount", "Other discount"];
+}
+export function lineErrors(line, type, member, context) {
   const errors = [];
   const procedure = procedureFor(line);
   if (!line.doctorId) errors.push("Select a procedure doctor.");
@@ -42,7 +49,7 @@ export function lineErrors(line, type, member) {
   if (procedure.pricing === "conflict") errors.push("Pricing conflict: no confirmed rate. Choose another procedure to complete this demo.");
   const roles = [line.doctorId, line.assistant, line.anesthetist].filter(Boolean);
   if (procedure.group === "RVS" && new Set(roles).size !== roles.length) errors.push("Choose different doctors for Main, Assistant and Anesthetist.");
-  Object.entries(line.deductions).forEach(([name, amount]) => { if (!(parseCents(amount) > 0)) errors.push("Enter a positive " + name + " amount."); });
+  Object.entries(line.deductions).forEach(([name, amount]) => { if (context && !deductionOptions(line, context).includes(name)) errors.push("Remove " + name + ": no longer applicable to this request."); if (!(parseCents(amount) > 0)) errors.push("Enter a positive " + name + " amount."); });
   return errors;
 }
 export function requestErrors(state) {
@@ -55,7 +62,7 @@ export function requestErrors(state) {
   if (!state.diagnoses.length) result.push("Add at least one diagnosis before procedures.");
   if (["IP", "EMERG", "OPCON"].includes(state.type) && !state.complaint.trim()) result.push("Enter a chief complaint.");
   if (!state.lines.length) result.push("Add at least one procedure line.");
-  state.lines.forEach((line, index) => lineErrors(line, state.type, state.member).forEach((message) => result.push("Line " + (index + 1) + ": " + message)));
+  state.lines.forEach((line, index) => lineErrors(line, state.type, state.member, state).forEach((message) => result.push("Line " + (index + 1) + ": " + message)));
   const keys = state.lines.filter((line) => line.code).map((line) => line.code + "|" + line.site);
   if (new Set(keys).size !== keys.length) result.push("Duplicate procedure and site: select a different tooth/site or remove the duplicate.");
   if (["IP", "OLP"].includes(state.type) && !state.files.length) result.push("Add a supporting document; the sample document button works without uploading a file.");

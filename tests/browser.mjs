@@ -50,6 +50,14 @@ try {
   await page.getByRole("button", { name: "Fee schedule + PAC", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await page.locator(".procedure-line").nth(2).locator(".MuiAccordionSummary-root").click();
+  await page.locator(".procedure-line").nth(2).locator(".deductions summary").click();
+  await expect(page.getByRole("checkbox", { name: "PhilHealth", exact: true })).toHaveCount(0);
+  await page.getByRole("combobox", { name: /^Class / }).click();
+  await page.getByRole("option", { name: "Surgical", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "PhilHealth", exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: /^Class / }).click();
+  await page.getByRole("option", { name: "Medical", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "PhilHealth", exact: true })).toHaveCount(0);
   await page.getByRole("textbox", { name: "Total charged amount" }).fill("");
   await page.getByRole("button", { name: "Review request", exact: true }).click();
   await expect(page.locator(".validation-summary")).toContainText("positive total charge");
