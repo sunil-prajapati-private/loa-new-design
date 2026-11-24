@@ -63,3 +63,14 @@ The form now follows the existing portal's `InputField`, `SelectField`, `PageWra
 Content reviewed against the LOA implementation plan: mandatory card+DOB, diagnosis-first selection, organisation Dental access, both Dental categories, doctor per line, date window, PAC total charge, manual PHP deductions and simulated submission. Senior Citizen now requires age at availment of at least 60 plus explicit Filipino citizenship in the fictional member record and IP/ER/OP Lab. OP Lab PhilHealth requires Surgical class or that line's RVS procedure. Stale inapplicable deductions block review and can be deselected. No automatic discount or net-total formula is assumed.
 
 The visible **Business review scope** panel identifies incomplete coverage: real procedure/diagnosis/benefit eligibility, ACU/PEME entitlement, consultation-clearance rules, inpatient room entitlement, chief-complaint dropdown and OHI delivery of supplemental roles. Requester details remain deferred. The demo is suitable for reviewing interaction proposals, not signing off implementation completeness or OHI rule accuracy. Use only the supplied fictional records.
+
+
+## Shared LOA and claim review
+
+Use **LOA creation** / **Claim creation** at the top to switch pages; each draft is retained while switching. Both use white cards on the portal's light background, shared input styling and a fixed review action. Scenario tabs load fictional examples. **Review notes** holds review guidance and limitations so the forms stay focused on data entry. Clicking a scenario again reloads it.
+
+Claim scenarios cover source LOA amounts, missing-charge entry, and consultation manual adjudication. The claim page inherits member, doctor, diagnosis, procedure and covered-amount details, requests service date and supporting documents (PDF/PNG/JPEG, 25 MB), and reviews line amounts before simulated submission. Files are never read or uploaded; only names are retained in memory. The demo does not implement invoice/payment flows or real eligibility/recovery services.
+
+Amount policy is a **design proposal informed by the current implementation**: populated source amounts stay read-only; absent source amounts permit manual entry. Existing zero remains read-only. This is not a discovered PAC-only gate. Current Add Claim renders amounts read-only, its validator requires a claimed amount, and the LOA response mapper supplies it from allowedAmount. Thus absent amounts have no entry path today. The proposed input closes that gap; production rule approval and implementation remain separate. A zero-covered consultation remains blocked for manual adjudication.
+
+Validation now includes 14 domain tests and browser journeys for both pages at 320, 375, 768 and 1440px, plus visual inspection of desktop and mobile captures.

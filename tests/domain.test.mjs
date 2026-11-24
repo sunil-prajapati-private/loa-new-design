@@ -1,3 +1,4 @@
+import { canEnterClaimAmount, claimAmount, claimErrors, claimSample } from '../src/claimDomain.js';
 import test from "node:test";
 import assert from "node:assert/strict";
 import { deductionOptions, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
@@ -72,4 +73,20 @@ test('Senior Citizen requires age at availment, citizenship and an eligible LOA 
 test('Previously entered deductions cannot pass review after eligibility changes', () => {
   const line = newLine('m1', diagnoses, { code: 'DEMO-M01', deductions: { PhilHealth: '100' } });
   assert(lineErrors(line, 'OLP', MEMBERS[0], { type: 'OLP', medicalClass: 'MEDICAL', member: MEMBERS[0], date: '2026-11-24' }).some(message => message.includes('Remove PhilHealth')));
+});
+
+test('Claim amount entry distinguishes missing source from an existing zero', () => {
+  assert.equal(canEnterClaimAmount({sourceAmount:0}), false);
+  assert.equal(claimAmount({sourceAmount:0,entered:'500'}), 0);
+  assert.equal(claimAmount({sourceAmount:null,entered:'1250.50'}),125050);
+  assert.equal(claimAmount({sourceAmount:null,entered:'-1'}),null);
+  assert.equal(claimAmount({sourceAmount:null,entered:''}),null);
+});
+test('Claim review requires service date, amounts and documents and blocks zero-covered consultation', () => {
+  const claim=claimSample('entry');
+  assert.equal(claimErrors(claim,'',[]).length,3);
+  claim.lines[1].entered='0';
+  assert.deepEqual(claimErrors(claim,claim.date,[{}]),[]);
+  assert(claimErrors(claimSample('blocked'),claim.date,[{}]).some(x=>x.includes('Manual adjudication')));
+  assert(claimErrors({...claim,eligible:false},claim.date,[{}]).some(x=>x.includes('unavailable')));
 });

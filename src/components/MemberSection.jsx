@@ -6,7 +6,7 @@ import Section from "./Section.jsx";
 export default function MemberSection({ card, dob, onInput, onLookup, loading, member, error, onSamples, type }) {
   return <Section id="member" step="2" title="Member details" description="Find a member using their card number and date of birth." action={<Button size="small" startIcon={<UserRound size={16} />} onClick={onSamples}>Sample members</Button>}>
     <div className="member-search"><TextField fullWidth size="small" label="Maxicare card number" required value={card} inputProps={{ inputMode: "numeric", maxLength: 16 }} onChange={(event) => onInput("card", event.target.value)} /><TextField fullWidth size="small" type="date" label="Date of birth" required value={dob} InputLabelProps={{ shrink: true }} onChange={(event) => onInput("dob", event.target.value)} /><Button variant="contained" disableElevation onClick={onLookup} disabled={loading || !card || !dob} startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <Search size={17} />}>{loading ? "Finding member…" : "Find member"}</Button></div>
-    <p className="field-note">Sample details are prefilled. Select <strong>Find member</strong> to see the lookup result. Please use fictional data only.</p>
+
     <div aria-live="polite" aria-busy={loading}>
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       {loading && <div className="member-result"><Skeleton variant="circular" width={48} height={48} /><div style={{ flex: 1 }}><Skeleton width="45%" height={26} /><Skeleton width="70%" /><Skeleton width="85%" /></div></div>}

@@ -18,7 +18,7 @@ try {
   await expect(page.getByRole("button", { name: "Finding member…" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await expect(page.getByText("Northstar Creative Co. (Demo)")).toBeVisible();
-  await page.getByRole("button", { name: "Dental & tooth selection", exact: true }).click();
+  await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await expect(page.locator(".procedure-line")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Tooth 26 — previously extracted", exact: true })).toBeDisabled();
@@ -47,7 +47,7 @@ try {
   await page.getByRole("button", { name: "Simulate submission" }).click();
   await expect(page.getByRole("dialog")).toContainText("No LOA was created");
   await page.getByRole("button", { name: "Return to form" }).click();
-  await page.getByRole("button", { name: "Fee schedule + PAC", exact: true }).click();
+  await page.getByRole("tab", { name: "Fee schedule + PAC", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await page.locator(".procedure-line").nth(2).locator(".MuiAccordionSummary-root").click();
   await page.locator(".procedure-line").nth(2).locator(".deductions summary").click();
@@ -65,7 +65,7 @@ try {
   await page.getByRole("button", { name: "Review request", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("₱3,200.50");
   await page.getByRole("button", { name: "Back to edit" }).click();
-  await page.getByRole("button", { name: "RVS doctors", exact: true }).click();
+  await page.getByRole("tab", { name: "RVS doctors", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Main doctor" })).toHaveValue("Dr. Isabel Torres");
   await page.getByRole("button", { name: "Review request", exact: true }).click();
@@ -75,7 +75,7 @@ try {
   await page.getByRole("textbox", { name: "Maxicare card number" }).fill("0000000000009999");
   await page.getByRole("button", { name: "Find member", exact: true }).click();
   await expect(page.getByText("No sample member matches", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: "Dental & tooth selection", exact: true }).click();
+  await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   for (const width of [320, 375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -86,6 +86,41 @@ try {
   if (await notification.isVisible()) await notification.click();
   await page.locator(".anatomy-panel").first().scrollIntoViewIfNeeded();
   await page.screenshot({ path: "test-results/mobile-dental.png", fullPage: false });
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await page.getByRole('button', { name: 'Claim creation', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Add claim', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Find LOA', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Alina Rivera', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Claimed amount · line 1', exact: true })).toHaveAttribute('readonly', '');
+  await page.getByRole('textbox', { name: 'LOA number', exact: true }).fill('UNKNOWN');
+  await expect(page.getByRole('heading', { name: 'Alina Rivera', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Find LOA', exact: true }).click();
+  await expect(page.getByText('No sample LOA found.', { exact: false })).toBeVisible();
+  await page.getByRole('tab', { name: 'Enter missing charge', exact: true }).click();
+  await page.getByRole('button', { name: 'Review claim', exact: true }).click();
+  await expect(page.getByText('Line 2: enter a valid non-negative charged amount', { exact: false })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Charged amount · line 2', exact: true }).fill('1250.50');
+  await page.getByRole('button', { name: 'Use sample claim document', exact: true }).click();
+  await page.getByRole('button', { name: 'Review claim', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('₱1,700.50');
+  await page.getByRole('button', { name: 'Simulate claim submission', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('No claim was created');
+  await page.getByRole('button', { name: 'Close claim review', exact: true }).click();
+  await page.getByRole('tab', { name: 'Manual review', exact: true }).click();
+  await page.getByRole('button', { name: 'Use sample claim document', exact: true }).click();
+  await page.getByRole('button', { name: 'Review claim', exact: true }).click();
+  await expect(page.getByText('Consultation covered amount is zero.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Enter missing charge', exact: true }).click();
+  await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
+  await page.screenshot({path:'test-results/desktop-claim.png'});
+  for (const width of [320, 375, 768, 1440]) {
+    await page.setViewportSize({width,height:900});
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+  await page.setViewportSize({width:375,height:812});
+  await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
+  await page.screenshot({path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure browser", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure browser", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }
