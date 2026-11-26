@@ -201,6 +201,37 @@ try {
   await expect(page.getByRole("dialog")).toContainText("Assistant: Dr. Adrian Flores");
   await expect(page.getByRole("dialog")).toContainText("Anesthetist: Dr. Lucas Reyes");
   await page.getByRole("button", { name: "Back to edit" }).click();
+  // Re-select and duplicate the same RVS; each line retains independent amounts.
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
+  await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("RVS");
+  await page.getByRole("option", { name: /Surgical procedure — sample RVS/ }).click();
+  await page.getByRole("combobox", { name: /^Modifier \/ laterality/ }).click();
+  await page.getByRole("option", { name: "Right", exact: true }).click();
+  await page.getByRole("button", { name: "Add procedure", exact: true }).click();
+  await page.getByRole("button", { name: "Duplicate line 1", exact: true }).click();
+  await page.getByRole("button", { name: "Add procedure", exact: true }).click();
+  await expect(page.locator(".procedure-line")).toHaveCount(3);
+  await expect(summary.locator(".loa-total")).toContainText("₱37,500.00");
+  await page.getByRole("button", { name: "Edit line 2", exact: true }).click();
+  await page.getByRole("textbox", { name: "Quantity for line 2", exact: true }).fill("2");
+  await page.locator(".procedure-dialog .deductions summary").click();
+  await page.getByRole("checkbox", { name: "PhilHealth", exact: true }).check();
+  await page.getByRole("textbox", { name: "PhilHealth amount", exact: true }).fill("100");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(summary.locator(".loa-total")).toContainText("₱49,900.00");
+  for (const index of [0, 2]) {
+    await expect(page.locator(".procedure-line").nth(index)).toContainText("Quantity 1");
+    await expect(page.locator(".procedure-line").nth(index)).not.toContainText("Deductions");
+  }
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
+  await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("RVS");
+  await expect(page.getByRole("option", { name: /Surgical procedure — sample RVS/ })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Review request", exact: true }).click();
+  await expect(page.locator(".review-line")).toHaveCount(3);
+  for (const line of await page.locator(".review-line").all()) await expect(line).toContainText("DEMO-R01");
+  await expect(page.getByRole("dialog").locator(".loa-total")).toContainText("₱49,900.00");
+  await page.getByRole("button", { name: "Back to edit", exact: true }).click();
   await page.getByRole("combobox", { name: /^LOA type/ }).click();
   await page.getByRole("option", { name: "Outpatient consultation", exact: true }).click();
   await page.getByRole("combobox", { name: /^Consultation type/ }).click();
@@ -492,5 +523,5 @@ try {
   await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "Total LOA Amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "procedure-specific and fixed room types", "ER sample journey", "replaceable Initial consultation Z71.1 default", "consultation-specific procedures", "selected option filtering", "26-point review audit", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "Total LOA Amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "same RVS on three independent lines", "procedure-specific and fixed room types", "ER sample journey", "replaceable Initial consultation Z71.1 default", "consultation-specific procedures", "selected option filtering", "26-point review audit", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }

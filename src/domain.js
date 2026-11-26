@@ -50,6 +50,7 @@ export function usedTeeth(lines, editingId) {
 }
 export function duplicateLineError(line, lines) {
   if (line.site && procedureFor(line)?.site === "tooth" && usedTeeth(lines, line.id).includes(line.site)) return "Duplicate tooth: Tooth " + line.site + " is already used by another procedure. Select a different tooth.";
+  if (procedureFor(line)?.group === "RVS") return null;
   if (line.code && lines.some((other) => other.id !== line.id && other.code === line.code && other.site === line.site)) return "Duplicate procedure and site: select a different site or remove the duplicate.";
   return null;
 }
@@ -67,7 +68,7 @@ export function parseCents(value) {
 }
 export const catalogFor = (doctorId, type, consultationType) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type) && (type !== "OPCON" || !consultationType || procedure.consultationType === consultationType));
 export function selectableProcedures(doctorId, type, lines, editingId, consultationType) {
-  return catalogFor(doctorId, type, consultationType).filter((procedure) => procedure.site !== "none" || !lines.some((line) => line.id !== editingId && line.code === procedure.code));
+  return catalogFor(doctorId, type, consultationType).filter((procedure) => procedure.group === "RVS" || procedure.site !== "none" || !lines.some((line) => line.id !== editingId && line.code === procedure.code));
 }
 export const ER_EXCLUDED_DIAGNOSES = new Set(["Z00.0", "Z02.1", "Z99.7", "Z71.1"]);
 export const nextDiagnosisRank = (diagnoses) => !diagnoses.length ? "Primary" : diagnoses.length === 1 ? "Secondary" : "Other Diagnosys";

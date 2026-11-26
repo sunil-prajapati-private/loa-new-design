@@ -360,3 +360,22 @@ test('Total LOA requires both scheduled and PAC amounts, and subtracts deduction
   assert.equal(requestAmounts([scheduled, { ...pac, deductions: { 'Other discount': '' } }]).totalLoa, null);
   assert.equal(requestAmounts([{ ...scheduled, deductions: { PhilHealth: '1500' } }, pac]).totalLoa, 35000);
 });
+
+
+test('The same RVS can appear on three or more independent lines and contributes each amount', () => {
+  const selected = [{ code: 'R10.9', rank: 'Primary' }];
+  const lines = Array.from({ length: 3 }, () => newLine('m2', selected, { code: 'DEMO-R01', modifier: 'Right', assistant: 'm1', anesthetist: 'm3' }));
+  const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[1], type: 'OLP', attending: 'm2', date: dates()[0], diagnoses: selected, member: MEMBERS[0], lines, files: [{}], complaint: '', medicalClass: 'SURGICAL' };
+  assert.equal(new Set(lines.map(line => line.id)).size, 3);
+  assert.deepEqual(requestErrors(form), []);
+  assert.equal(requestAmounts(lines).totalLoa, 3750000);
+  assert(selectableProcedures('m2', 'OLP', lines).some(p => p.code === 'DEMO-R01'));
+  const edited = lines.map((line, index) => index === 1 ? { ...line, quantity: '2', deductions: { PhilHealth: '100' } } : line);
+  assert.equal(requestAmounts(edited).totalLoa, 4990000);
+  assert.equal(lines[0].quantity, '1');
+  assert.deepEqual(lines[2].deductions, {});
+  const fourth = newLine('m2', selected, { code: 'DEMO-R01', modifier: 'Right' });
+  assert.deepEqual(requestErrors({ ...form, lines: [...lines, fourth] }), []);
+  const medical = newLine('m2', selected, { code: 'DEMO-M01' });
+  assert(duplicateLineError({ ...medical, id: 'second-medical' }, [medical]));
+});
