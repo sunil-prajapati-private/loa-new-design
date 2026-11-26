@@ -91,7 +91,7 @@ This revision updates the local design demo. It does not publish a new version o
 - **Current rule:** repeat procedures are allowed for different teeth/sites, but a tooth may appear only once in the request across all procedures and doctors. Duplicate procedure + site checks remain for quadrant and site-free lines.
 - The date choices retain Today and remove Tomorrow. Summary labels are “Total agreed CPT amount” and “Estimated Additional Charges”. PAC lines require remarks before review.
 
-Remaining review points are not silently resolved by this revision: final business approval of the age-12 tooth-chart assumption, fourth-and-later diagnosis ranking, OHI tooth-history synchronization, room-specific CPT rates, body-part catalogues, related Surgical supply codes, ECU/package eligibility and dental chief-complaint options. These need a further design/data pass. Existing diagnosis-ranking and tooth-chart examples remain illustrative.
+Remaining review points are not silently resolved by this revision: final business approval of the age-12 tooth-chart assumption, fourth-and-later diagnosis ranking, OHI tooth-history synchronization, room-specific CPT rates, body-part catalogues, related Surgical supply codes, ECU/package eligibility and dental-specific chief-complaint options. These need a further design/data pass. Existing diagnosis-ranking and tooth-chart examples remain illustrative.
 
 Validation: domain tests, production build, repository lint and browser journeys covering popup save/cancel, independent diagnoses, requester validation/review, specialties, PhilHealth, duplicate sites, PAC remarks, RVS roles and the existing claims flow. Browser layout checks use 320, 375, 768 and 1440 pixel widths.
 
@@ -123,3 +123,12 @@ The request summary stays at the bottom of the form. Agreed CPT, additional char
 ## Automatic chart and unique teeth
 
 Review points 7 and 9 now reflect the latest design request. The 12-year threshold is an explicit demo assumption, not a confirmed clinical/business rule. Use fictional sample member **Maya Rivera** to try temporary teeth; Alina and Daniel demonstrate permanent teeth. The chart follows age at availment in both Add and Edit. A changed member/date clears a tooth that does not belong to the resulting chart, and the line must be completed again. Each tooth can be selected by only one procedure in a request, including when the doctor or procedure code differs. Quadrant selection retains the existing procedure-and-site duplicate rule.
+
+
+## Chief complaint and contact validation — 26 November 2026
+
+Chief complaint is now a dropdown containing the 17 `CHIEF_COMPLAINT` code/description pairs used by the existing Provider Portal form. The portal's `ProcedureInfo.jsx` loads `/getChiefComplain`; the demo uses the reference values observed on 24 November 2026 in the workspace research snapshot. Only code/description pairs are included, with no live service dependency. The selected description appears in request details and final review. Existing demo requiredness is retained: required for consultation, inpatient and emergency; optional otherwise. No dental-specific choices have been invented.
+
+Mobile and email remain optional, but supplied invalid values prevent review. Errors appear below each field on blur or review and clear as corrected. Mobile validation follows the portal's `src/utils/philippineMobileNumber.js`: `09` plus nine digits or `+639` plus nine digits, allowing spaces and hyphens. Email uses the pure validator from `src/modules/registration/emailValidation.js`, including the 50-character maximum and local/domain-format checks. These dependency-free copies and the complaint options live in `src/portalForm.js`.
+
+Validation covers accepted/invalid contacts, optional blanks, email-length boundaries, complaint selection/clearing, required complaints, and description display in summary/review, alongside the existing browser journeys.

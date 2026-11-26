@@ -1,3 +1,4 @@
+import { chiefComplaintError, contactErrors } from "./portalForm.js";
 import { DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS } from "./data.js";
 export const money = (cents) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(cents / 100);
 export const doctorName = (id) => DOCTORS.find((doctor) => doctor.id === id)?.name ?? "Choose doctor";
@@ -105,7 +106,9 @@ export function lineErrors(line, type, member, context) {
   return errors;
 }
 export function requestErrors(state) {
-  const result = [];
+  const result = Object.values(contactErrors(state)).filter(Boolean);
+  const complaintError = chiefComplaintError(state);
+  if (complaintError) result.push(complaintError);
   if (!state.requesterName?.trim()) result.push("Enter the LOA requester name.");
   if (!state.department?.trim()) result.push("Enter the requester department.");
   if (state.type === "OPCON" && !state.consultationType) result.push("Select a consultation type.");
@@ -115,7 +118,6 @@ export function requestErrors(state) {
   if (state.type === "DENT" && state.member && !state.member.dental) result.push("This sample member has no Dental benefit. Use Alina or Daniel for the Dental journey.");
   if (!dates().includes(state.date)) result.push("Choose today, tomorrow or the following day in Philippine time.");
   if (!state.diagnoses.length) result.push("Add at least one diagnosis before procedures.");
-  if (["IP", "EMERG", "OPCON"].includes(state.type) && !state.complaint.trim()) result.push("Enter a chief complaint.");
   if (!state.lines.length) result.push("Add at least one procedure line.");
   if (state.lines.some((line) => procedureFor(line)?.pricing === "pac") && !state.remarks?.trim()) result.push("Enter remarks for the Price As Charged procedure(s).");
   state.lines.forEach((line, index) => lineErrors(line, state.type, state.member, state).forEach((message) => result.push("Line " + (index + 1) + ": " + message)));

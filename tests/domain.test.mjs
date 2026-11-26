@@ -1,3 +1,4 @@
+import { CHIEF_COMPLAINTS, chiefComplaintLabel, contactErrors } from "../src/portalForm.js";
 import { canEnterClaimAmount, claimAmount, claimErrors, claimSample } from '../src/claimDomain.js';
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -197,4 +198,42 @@ test('A member change replaces the chart and clears an incompatible saved tooth'
   const quadrant = newLine('d1', diagnoses, { code: 'DEMO-D06', site: 'UR' });
   assert.equal(alignDentalLine(quadrant, MEMBERS[3], dates()[0]).site, 'UR');
   assert.deepEqual(usedTeeth([quadrant], 'another-line'), []);
+});
+
+
+test('Optional contacts use the portal Philippine mobile and email rules', () => {
+  assert.deepEqual(contactErrors({}), { mobile: null, email: null });
+  assert.deepEqual(contactErrors({ mobile: '  ', email: '  ' }), { mobile: null, email: null });
+  for (const mobile of ['09171234567', '+639171234567', '0917-123-4567', '+63 917 123 4567']) {
+    assert.equal(contactErrors({ mobile }).mobile, null, mobile);
+  }
+  for (const mobile of ['12345', '08171234567', '+649171234567', '639171234567', '091712345678', '0917abc4567']) {
+    assert.match(contactErrors({ mobile }).mobile, /valid Philippine mobile number/, mobile);
+  }
+  for (const email of ['user@example.com', 'first.last+tag@example.com', 'user@my-clinic.com.ph', ' USER@EXAMPLE.COM ']) {
+    assert.equal(contactErrors({ email }).email, null, email);
+  }
+  for (const email of ['plainaddress', 'user@@example.com', '.user@example.com', 'user..name@example.com', 'user__name@example.com', 'user@domain..com', 'user@-domain.com', 'user@do_main.com', 'user@domain.c', 'user@domain.123', 'user name@example.com', 'user@a.b.c.com']) {
+    assert.ok(contactErrors({ email }).email, email);
+  }
+  assert.equal(contactErrors({ email: 'a'.repeat(38) + '@example.com' }).email, null);
+  assert.equal(contactErrors({ email: 'a'.repeat(39) + '@example.com' }).email, 'Email cannot exceed 50 characters');
+});
+
+test('Invalid optional contacts prevent request review until corrected or cleared', () => {
+  const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[0], type: 'DENT', attending: 'd1', date: dates()[0], diagnoses, member: MEMBERS[0], lines: [newLine('d1', diagnoses, { code: 'DEMO-D01' })], files: [], complaint: '' };
+  assert.deepEqual(requestErrors(form), []);
+  assert.equal(requestErrors({ ...form, mobile: '123', email: 'jamie@' }).length, 2);
+  assert.deepEqual(requestErrors({ ...form, mobile: '+639171234567', email: 'jamie@example.com' }), []);
+  assert.deepEqual(requestErrors({ ...form, mobile: '', email: '' }), []);
+});
+
+test('Chief complaint accepts portal codes and shows descriptions in review', () => {
+  const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[0], type: 'DENT', attending: 'd1', date: dates()[0], diagnoses, member: MEMBERS[0], lines: [newLine('d1', diagnoses, { code: 'DEMO-D01' })], files: [], complaint: '' };
+  assert.equal(CHIEF_COMPLAINTS.length, 17);
+  assert.equal(chiefComplaintLabel('09'), 'Accidents and Trauma');
+  for (const option of CHIEF_COMPLAINTS) assert.deepEqual(requestErrors({ ...form, complaint: option.value }), []);
+  for (const complaint of ['Fever', 'fever', '99']) assert(requestErrors({ ...form, complaint }).includes('Select a chief complaint from the list.'));
+  for (const type of ['OPCON', 'IP', 'EMERG']) assert(requestErrors({ ...form, type }).includes('Select a chief complaint.'));
+  for (const type of ['DENT', 'OLP', 'ACU', 'PEME']) assert(!requestErrors({ ...form, type }).includes('Select a chief complaint.'));
 });
