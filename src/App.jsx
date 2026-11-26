@@ -177,7 +177,7 @@ export default function App({ onNavigate }) {
       <Section id="procedures" step="4" title="Doctors & procedures" description="Choose a doctor on each line, then select from that doctor's sample catalogue." action={<Chip size="small" label={form.lines.length + (form.lines.length === 1 ? " line" : " lines")} />}>
         {!canAdd && <div className="empty-member"><Stethoscope size={23} /><span>Find a member and add a diagnosis to unlock procedure selection.</span></div>}
         {form.lines.map((line, index) => <ProcedureLine key={line.id} line={line} index={index} type={form.type} member={form.member} date={form.date} medicalClass={form.medicalClass} diagnoses={form.diagnoses} onEdit={() => setEditor({ line, isNew: false, index })} onRemove={() => setRemoveLine(line)} onDuplicate={() => duplicateLine(line)} showErrors={showErrors} />)}
-        <Button variant="outlined" startIcon={<Plus size={17} />} disabled={!canAdd} onClick={() => addLine()} sx={{ mt: 1.5 }}>Add procedure line</Button>
+        <Button variant="outlined" startIcon={<Plus size={17} />} disabled={!canAdd} onClick={() => addLine()} sx={{ mt: 1.5 }}>Add Procedure</Button>
 
       </Section>
       <Section id="documents" step="5" title="Documents & remarks" description={["OLP", "IP"].includes(form.type) ? "Supporting document required for this sample journey." : "Supporting documents are optional for this sample journey."}>

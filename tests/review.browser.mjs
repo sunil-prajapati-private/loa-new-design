@@ -27,7 +27,7 @@ export async function verifyReviewUpdates(page) {
   await page.getByRole("button", { name: "Find member", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await expect(page.locator(".diagnosis-row")).toContainText("Z71.1");
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await procedureSearch.click();
   await expect(page.getByRole("option")).toHaveCount(1);
   await page.getByRole("option", { name: /Initial consultation/ }).click();
@@ -37,7 +37,7 @@ export async function verifyReviewUpdates(page) {
   await expect(page.locator(".procedure-line")).toContainText("Z71.1 · Primary");
   await page.getByRole("button", { name: "Remove diagnosis Z71.1", exact: true }).click();
   await expect(page.locator(".diagnosis-row")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Add procedure line", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Add Procedure", exact: true })).toBeDisabled();
   await dxSearch.fill("Fever");
   await page.getByRole("option", { name: /R50.9/ }).click();
   await consultation.click();
@@ -73,7 +73,7 @@ export async function verifyReviewUpdates(page) {
   await expect(page.getByRole("checkbox", { name: "PhilHealth", exact: true })).toBeChecked();
   await expect(page.getByRole("textbox", { name: "PhilHealth amount" })).toHaveValue("300.00");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await procedureSearch.fill("Emergency");
   await expect(page.getByRole("option")).toHaveCount(0);
   await procedureSearch.fill("Complete blood count");
@@ -99,7 +99,7 @@ export async function verifyReviewUpdates(page) {
 
   await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await procedureSearch.fill("Periodontal treatment");
   await page.getByRole("option", { name: /Periodontal treatment/ }).click();
   await expect(page.getByRole("group", { name: "Dental quadrant", exact: true }).getByRole("button")).toHaveCount(4);

@@ -134,14 +134,14 @@ try {
   await page.getByRole("button", { name: "Remove procedure", exact: true }).click();
   await expect(page.locator(".procedure-line")).toHaveCount(3);
   // Add is a draft too: cancellation never leaves a blank line behind.
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Oral examination");
   await page.getByRole("option", { name: /Oral examination/ }).click();
   await expect(page.getByRole("checkbox", { name: /K02.9/ })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: /K05.1/ })).toBeChecked();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.locator(".procedure-line")).toHaveCount(3);
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Oral examination");
   await page.getByRole("option", { name: /Oral examination/ }).click();
   await page.getByRole("button", { name: "Add procedure", exact: true }).click();
@@ -238,7 +238,7 @@ try {
   await expect(page.locator(".dental-chart .tooth")).toHaveCount(32);
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.locator(".procedure-line").first()).toContainText("Tooth 55 · Temporary teeth");
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Periapical radiograph");
   await page.getByRole("option", { name: /Periapical radiograph/ }).click();
   await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -285,7 +285,7 @@ try {
   await page.getByRole("button", { name: "Tooth 54", exact: true }).click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.locator(".procedure-line").first()).toContainText("Tooth 55 · Temporary teeth");
-  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
   await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Periapical radiograph");
   await page.getByRole("option", { name: /Periapical radiograph/ }).click();
   await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -433,7 +433,7 @@ try {
   await page.getByRole('button', { name: 'Remove procedure', exact: true }).click();
   await page.getByRole('button', { name: 'Remove line 1', exact: true }).click();
   await page.getByRole('button', { name: 'Remove procedure', exact: true }).click();
-  await page.getByRole('button', { name: 'Add procedure line', exact: true }).click();
+  await page.getByRole('button', { name: 'Add Procedure', exact: true }).click();
   await page.getByRole('combobox', { name: 'Procedure code or description', exact: true }).fill('Inpatient medical care');
   await page.getByRole('option', { name: /Inpatient medical care/ }).click();
   await roomSelect.click();
