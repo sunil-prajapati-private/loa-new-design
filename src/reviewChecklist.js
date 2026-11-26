@@ -3,7 +3,7 @@
 export const REVIEW_CHECKLIST = [
   [1, "LOA requester and contacts", "Demo complete; integration pending", "Requester name/department and optional validated mobile/email appear in review. Writing them to OHI Internal Remarks and the 1 December UAT release are not verified here."],
   [2, "Consultation type", "Demo complete", "Initial, Follow up and Clearance are retained. Fields use at most half the desktop row; full width on phones."],
-  [3, "Doctor specialization", "Demo complete", "Requesting/attending, procedure, Main, Assistant and Anesthetist specialties appear with selected doctors and in review."],
+  [3, "Doctor specialization", "Demo complete", "Requesting/attending and procedure/Main doctor specialties appear with selected doctors and in review. Each RVS line has one doctor; the additional-doctor card has been removed."],
   [4, "Today label", "Demo complete", "Today is shown only for IP, OP Lab, OP consultation and Dental. Tomorrow is not a label. The sample three-day date window is unchanged."],
   [5, "Chief complaint dropdown", "Demo complete", "Uses the existing portal’s 17 reference values, with the selected description in review."],
   [6, "OHI dental history synchronization", "Integration verification pending", "Extracted teeth are blocked using fictional history. Automatic synchronization and live OHI rules cannot be verified in this browser-only demo."],
@@ -15,7 +15,7 @@ export const REVIEW_CHECKLIST = [
   [12, "Room-type CPT tagging", "Selection complete; rate integration pending", "Room types follow procedure modifiers; OP/Emergency Room are fixed by LOA type. Actual room-specific CPT rate resolution and entitlement are not implemented."],
   [13, "Sample journey explanations", "Demo complete", "Scenario tabs load fictional examples. Review notes explain their purpose and limits; they are not extra LOA fields."],
   [14, "Valid body parts / Back", "Business decision pending", "No Upper Back / Lower Back grouping rule is assumed. Maxicare Business must supply the approved catalogue and grouping."],
-  [15, "Related Surgical CPT codes / supplies", "Demo gap; UAT verification pending", "RVS doctor roles and Surgical class are demonstrated. Associated CPT/supply mappings are not present in the demo and need an approved catalogue; the reported UAT behavior is not verified here."],
+  [15, "Related Surgical CPT codes / supplies", "Demo gap; UAT verification pending", "RVS procedure doctors and Surgical class are demonstrated. Associated CPT/supply mappings are not present in the demo and need an approved catalogue; the reported UAT behavior is not verified here."],
   [16, "Executive Check Up", "Out of scope", "ECU remains outside this demo, as stated in the review."],
   [17, "Agreed CPT label", "Demo complete", "Request summary and review use Total agreed CPT amount."],
   [18, "PAC label", "Demo complete", "Request summary and review use Estimated Additional Charges."],

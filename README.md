@@ -6,7 +6,7 @@ A standalone React frontend for public design review. Uses a copy of the existin
 
 - **Dental & tooth selection:** member lookup, three independent procedure lines, doctor-specific procedure dropdown, tooth chart, quadrant selection and sample extracted-tooth history.
 - **Fee schedule + PAC:** read-only scheduled amounts alongside an editable total line charge. Use the procedure dropdown for laterality examples.
-- **RVS doctors:** Main doctor before procedure selection, optional Assistant and Anesthetist, and review of exact line roles.
+- **RVS doctors:** one selected doctor per procedure line, with repeat RVS selection supported.
 - **Demo scenarios:** switch fictional organisations or members. Medical organisation cannot enable Dental; Nico's sample plan has no Dental benefit.
 - **Find member:** exact matching against four fictional card+DOB pairs, with loading, success and no-match states.
 - **Review:** checks missing required entries, stale doctor quotes, duplicate sites, charges and supporting-document placeholders. Submission is a clearly labelled simulation.
@@ -170,3 +170,5 @@ Quadrant follow-up: Permanent / Temporary selection now appears only for individ
 LOA summary follow-up: removed the entire **Request & procedure details** disclosure from the bottom summary. It now shows agreed CPT, estimated additional charges, Total LOA Amount, the calculation and the PHP deduction breakdown. Full clinical/request details remain in the procedure cards and final review dialog.
 
 RVS repetition follow-up: the same RVS code remains available in Add Procedure and can be saved on three or more separate lines, including with the same doctor and modifier. Duplicate also creates an independent RVS line. No three-line maximum is imposed. Each line contributes its own quantity, amount and deductions to Total LOA Amount; the distinct Main/Assistant/Anesthetist rule still applies within each line. Non-RVS duplicate and Dental tooth/site rules are unchanged. This supersedes the earlier blanket site-free procedure exclusion.
+
+RVS doctor-card follow-up: removed the entire **Additional RVS doctors — Optional** card from Add/Edit. Each line now uses its selected Main/procedure doctor. Assistant/Anesthetist sample values, display and validation were also removed so saved cards and review do not carry inaccessible extra roles. Repeat RVS selection and per-line amounts remain available.

@@ -86,7 +86,7 @@ export function consultationDefaults(state) {
   return { ...state, diagnoses, lines: state.lines.map((line) => ({ ...line, diagnoses: [...line.diagnoses.filter((code) => codes.includes(code)), ...added] })) };
 }
 export function newLine(doctorId, diagnoses, seed = {}) {
-  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", providerRoomTypeCode: "", providerRoomType: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
+  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", providerRoomTypeCode: "", providerRoomType: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), stale: false, deductions: {}, ...seed };
 }
 export function amountFor(line) {
   const procedure = procedureFor(line);
@@ -142,8 +142,6 @@ export function lineErrors(line, type, member, context) {
   if (type === "DENT" && line.quantity !== "1") errors.push("Use one Dental service per line in this demo.");
   if (procedure.pricing === "pac" && !(parseCents(line.charge) > 0)) errors.push("Enter a positive total charge with at most two decimal places.");
   if (procedure.pricing === "conflict") errors.push("Pricing conflict: no confirmed rate. Choose another procedure to complete this demo.");
-  const roles = [line.doctorId, line.assistant, line.anesthetist].filter(Boolean);
-  if (procedure.group === "RVS" && new Set(roles).size !== roles.length) errors.push("Choose different doctors for Main, Assistant and Anesthetist.");
   Object.entries(line.deductions).forEach(([name, amount]) => { if (context && !deductionOptions(line, context).includes(name)) errors.push("Remove " + name + ": no longer applicable to this request."); if (!(parseCents(amount) > 0)) errors.push("Enter a positive " + name + " amount."); });
   return errors;
 }

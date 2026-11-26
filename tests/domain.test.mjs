@@ -35,11 +35,11 @@ test("Dental history and site requiredness block invalid sample lines", () => {
   assert(lineErrors({ ...line, site: "" }, "DENT", MEMBERS[0]).some((error) => error.includes("Select one tooth")));
   assert.deepEqual(lineErrors({ ...line, site: "16" }, "DENT", MEMBERS[0]), []);
 });
-test("RVS roles stay distinct and require a laterality modifier", () => {
-  const line = newLine("m2", diagnoses, { code: "DEMO-R01", assistant: "m2" });
+test("RVS procedures require a laterality modifier", () => {
+  const line = newLine("m2", diagnoses, { code: "DEMO-R01" });
   const errors = lineErrors(line, "OLP", MEMBERS[0]);
-  assert(errors.some((error) => error.includes("different doctors")));
   assert(errors.some((error) => error.includes("modifier")));
+  assert.deepEqual(lineErrors({ ...line, modifier: "Right" }, "OLP", MEMBERS[0]), []);
 });
 test("Organisation Dental access and member benefit are independent", () => {
   const form = { requesterName: "Jamie Cruz", department: "Patient services", org: ORGANISATIONS[1], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[2], lines: [newLine("d1", diagnoses, { code: "DEMO-D01" })], files: [], complaint: "" };
@@ -364,7 +364,7 @@ test('Total LOA requires both scheduled and PAC amounts, and subtracts deduction
 
 test('The same RVS can appear on three or more independent lines and contributes each amount', () => {
   const selected = [{ code: 'R10.9', rank: 'Primary' }];
-  const lines = Array.from({ length: 3 }, () => newLine('m2', selected, { code: 'DEMO-R01', modifier: 'Right', assistant: 'm1', anesthetist: 'm3' }));
+  const lines = Array.from({ length: 3 }, () => newLine('m2', selected, { code: 'DEMO-R01', modifier: 'Right' }));
   const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[1], type: 'OLP', attending: 'm2', date: dates()[0], diagnoses: selected, member: MEMBERS[0], lines, files: [{}], complaint: '', medicalClass: 'SURGICAL' };
   assert.equal(new Set(lines.map(line => line.id)).size, 3);
   assert.deepEqual(requestErrors(form), []);

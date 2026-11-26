@@ -195,11 +195,9 @@ try {
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
   await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
   await expect(page.getByRole("combobox", { name: "Main doctor" })).toHaveValue("Dr. Isabel Torres");
-  await expect(page.getByRole("dialog")).toContainText("Specialty: Anesthesiology");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("button", { name: "Review request", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("Assistant: Dr. Adrian Flores");
-  await expect(page.getByRole("dialog")).toContainText("Anesthetist: Dr. Lucas Reyes");
+  await expect(page.getByRole("dialog")).toContainText("Dr. Isabel Torres");
   await page.getByRole("button", { name: "Back to edit" }).click();
   // Re-select and duplicate the same RVS; each line retains independent amounts.
   await page.getByRole("button", { name: "Add Procedure", exact: true }).click();
@@ -523,5 +521,5 @@ try {
   await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "Total LOA Amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "same RVS on three independent lines", "procedure-specific and fixed room types", "ER sample journey", "replaceable Initial consultation Z71.1 default", "consultation-specific procedures", "selected option filtering", "26-point review audit", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "Total LOA Amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS procedure doctors", "same RVS on three independent lines", "procedure-specific and fixed room types", "ER sample journey", "replaceable Initial consultation Z71.1 default", "consultation-specific procedures", "selected option filtering", "26-point review audit", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }
