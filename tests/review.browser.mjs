@@ -110,7 +110,7 @@ export async function verifyReviewUpdates(page) {
     await dxSearch.fill(code);
     await page.getByRole("option", { name: new RegExp(code.replace('.', '\\.')) }).click();
   }
-  for (const [code, rank] of [["K02.9", "Primary"], ["K05.1", "Secondary"], ["K04.0", "Other Diagnosys"], ["K08.9", "Other Diagnosys"]]) {
+  for (const [code, rank] of [["K02.9", "Primary"], ["K05.1", "Secondary"], ["K04.0", "Other Diagnosis"], ["K08.9", "Other Diagnosis"]]) {
     await expect(page.getByRole("combobox", { name: "Rank for " + code })).toHaveText(rank);
   }
   await page.getByRole("tab", { name: "Review notes", exact: true }).click();

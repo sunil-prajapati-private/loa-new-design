@@ -11,7 +11,7 @@ export const REVIEW_CHECKLIST = [
   [8, "Hide selected procedures", "Demo complete with agreed exceptions", "The same RVS procedure can be selected on three or more independent lines, including the same doctor. Other site-free procedures are hidden after selection. Dental procedures remain available for another tooth/quadrant; duplicate sites are blocked."],
   [9, "Prevent repeated teeth", "Demo complete", "A tooth cannot be selected on two lines, even for different procedures or doctors. Extracted and already-used teeth are disabled."],
   [10, "PhilHealth and Senior Citizen", "Demo complete", "PhilHealth on every Dental, OP Lab, IP and ER line. Senior Citizen enables at age 60+ for every LOA type. Amounts remain manual PHP entries."],
-  [11, "Diagnosis categories", "Demo complete", "First diagnosis defaults to Primary, second to Secondary, third and later to Other Diagnosys. Categories remain editable; one Primary is retained."],
+  [11, "Diagnosis categories", "Demo complete", "First diagnosis defaults to Primary, second to Secondary, third and later to Other Diagnosis. Categories remain editable; one Primary is retained."],
   [12, "Room-type CPT tagging", "Selection complete; rate integration pending", "Room types follow procedure modifiers; OP/Emergency Room are fixed by LOA type. Actual room-specific CPT rate resolution and entitlement are not implemented."],
   [13, "Sample journey explanations", "Demo complete", "Scenario tabs load fictional examples. Review notes explain their purpose and limits; they are not extra LOA fields."],
   [14, "Valid body parts / Back", "Business decision pending", "No Upper Back / Lower Back grouping rule is assumed. Maxicare Business must supply the approved catalogue and grouping."],

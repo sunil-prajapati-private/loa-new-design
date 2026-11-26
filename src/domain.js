@@ -71,7 +71,7 @@ export function selectableProcedures(doctorId, type, lines, editingId, consultat
   return catalogFor(doctorId, type, consultationType).filter((procedure) => procedure.group === "RVS" || procedure.site !== "none" || !lines.some((line) => line.id !== editingId && line.code === procedure.code));
 }
 export const ER_EXCLUDED_DIAGNOSES = new Set(["Z00.0", "Z02.1", "Z99.7", "Z71.1"]);
-export const nextDiagnosisRank = (diagnoses) => !diagnoses.length ? "Primary" : diagnoses.length === 1 ? "Secondary" : "Other Diagnosys";
+export const nextDiagnosisRank = (diagnoses) => !diagnoses.length ? "Primary" : diagnoses.length === 1 ? "Secondary" : "Other Diagnosis";
 export const showTodayLabel = (type) => ["IP", "OLP", "OPCON", "DENT"].includes(type);
 // Seed only an empty initial-consultation diagnosis list; retain clinical choices.
 // The portal permits replacing/removing this default, so it is not reapplied on every render.
