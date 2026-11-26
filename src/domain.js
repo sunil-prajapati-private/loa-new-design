@@ -1,9 +1,28 @@
 import { chiefComplaintError, contactErrors } from "./portalForm.js";
-import { DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS } from "./data.js";
+import { DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS, ROOM_TYPES, FIXED_ROOM_TYPES } from "./data.js";
 export const money = (cents) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(cents / 100);
 export const doctorName = (id) => DOCTORS.find((doctor) => doctor.id === id)?.name ?? "Choose doctor";
 export const doctorSpecialty = (id) => DOCTORS.find((doctor) => doctor.id === id)?.specialty ?? "Select a doctor to view specialty";
 export const procedureFor = (line) => PROCEDURES.find((procedure) => procedure.code === line.code);
+// Match the portal's room-code / hierarchy-name filtering, independently of laterality.
+export function roomTypeOptions(line, type) {
+  const procedure = procedureFor(line);
+  if (!procedure || type === "OPCON") return [];
+  if (FIXED_ROOM_TYPES[type]) return [FIXED_ROOM_TYPES[type]];
+  const normalize = (value) => String(value ?? "").trim().toLowerCase();
+  const modifiers = procedure.roomModifiers ?? [];
+  const codes = new Set(modifiers.map((modifier) => normalize(modifier.code)).filter(Boolean));
+  const descriptions = new Set(modifiers.map((modifier) => normalize(modifier.descr)).filter(Boolean));
+  return ROOM_TYPES.filter((room) => codes.has(normalize(room.value)) || codes.has(normalize(room.roomHierarchyLabel)) || descriptions.has(normalize(room.roomHierarchyLabel)));
+}
+export function roomTypeFor(line, type) {
+  const options = roomTypeOptions(line, type);
+  return FIXED_ROOM_TYPES[type] ? options[0] : options.find((room) => room.value === line.providerRoomTypeCode);
+}
+export function alignRoomLine(line, type) {
+  const room = roomTypeFor(line, type);
+  return { ...line, providerRoomTypeCode: room?.value ?? "", providerRoomType: room?.roomHierarchyLabel ?? room?.value ?? "" };
+}
 export const toothChartFor = (line) => TOOTH_CHARTS[line.dentition ?? "permanent"];
 export const siteLabel = (line) => !line.site ? "" : (procedureFor(line)?.site === "tooth" ? "Tooth " : "Quadrant ") + line.site + " · " + (toothChartFor(line)?.label ?? "Choose dental chart");
 export function ageAtDate(dob, date) {
@@ -48,7 +67,7 @@ export function parseCents(value) {
 }
 export const catalogFor = (doctorId, type) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type));
 export function newLine(doctorId, diagnoses, seed = {}) {
-  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
+  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", providerRoomTypeCode: "", providerRoomType: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
 }
 export function amountFor(line) {
   const procedure = procedureFor(line);
@@ -96,6 +115,7 @@ export function lineErrors(line, type, member, context) {
   if (procedure.site === "tooth" && line.site && !toothChartFor(line)?.rows.flat().map(String).includes(line.site)) errors.push("Select a tooth from the selected dental chart.");
   if (procedure.site === "quadrant" && line.site && !QUADRANTS.some((quadrant) => quadrant.value === line.site)) errors.push("Select a valid dental quadrant.");
   if (procedure.site === "tooth" && member?.extracted?.includes(line.site)) errors.push("This tooth is marked as previously extracted in the demo history.");
+  if (line.providerRoomTypeCode && !roomTypeOptions(line, type).some((room) => room.value === line.providerRoomTypeCode)) errors.push("Select an available room type for this procedure and LOA type.");
   if (procedure.modifiers?.length && !procedure.modifiers.includes(line.modifier)) errors.push("Select an applicable modifier.");
   if (!/^\d{1,2}$/.test(line.quantity) || Number(line.quantity) < 1) errors.push("Quantity must be a whole number from 1 to 99.");
   if (type === "DENT" && line.quantity !== "1") errors.push("Use one Dental service per line in this demo.");

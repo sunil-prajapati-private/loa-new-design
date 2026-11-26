@@ -2,7 +2,7 @@ import { CHIEF_COMPLAINTS, chiefComplaintLabel, contactErrors } from "../src/por
 import { canEnterClaimAmount, claimAmount, claimErrors, claimSample } from '../src/claimDomain.js';
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ageAtDate, alignDentalLine, dentitionFor, duplicateLineError, usedTeeth, seniorEligible, siteLabel, deductionOptions, deductionTotal, requestAmounts, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
+import { ageAtDate, alignDentalLine, alignRoomLine, roomTypeFor, roomTypeOptions, dentitionFor, duplicateLineError, usedTeeth, seniorEligible, siteLabel, deductionOptions, deductionTotal, requestAmounts, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
 import { MEMBERS, ORGANISATIONS, TOOTH_CHARTS } from "../src/data.js";
 const diagnoses = [{ code: "K02.9", rank: "Primary" }];
 test("Manila dates cross UTC midnight correctly", () => {
@@ -259,4 +259,37 @@ test('Changing member resets a manual chart and rejects an incompatible saved to
   assert.equal(changed.dentitionMemberId, null);
   assert.equal(changed.site, '');
   assert.equal(changed.stale, true);
+});
+
+
+test('Room modifiers filter the hospital room catalogue independently per procedure', () => {
+  const first = newLine('m1', diagnoses, { code: 'DEMO-IP01' });
+  const second = newLine('m1', diagnoses, { code: 'DEMO-IP02' });
+  assert.deepEqual(roomTypeOptions(first, 'IP').map(room => room.label), ['Ward', 'Small Private']);
+  assert.deepEqual(roomTypeOptions(second, 'IP').map(room => room.label), ['Small Private', 'Large Private']);
+  assert.deepEqual(roomTypeOptions(newLine('m1', diagnoses, { code: 'DEMO-M01' }), 'IP'), []);
+  const selected = alignRoomLine({ ...first, providerRoomTypeCode: 'DEMO-SMALL-PRIVATE' }, 'IP');
+  assert.equal(selected.providerRoomType, 'SMALL PRIVATE');
+  assert.equal(roomTypeFor(selected, 'IP').label, 'Small Private');
+  assert.deepEqual(lineErrors(selected, 'IP', MEMBERS[0]), []);
+  assert.deepEqual(lineErrors(first, 'IP', MEMBERS[0]), []); // Optional, like the existing form.
+  assert(lineErrors({ ...first, providerRoomTypeCode: 'DEMO-LARGE-PRIVATE' }, 'IP', MEMBERS[0]).some(message => message.includes('available room type')));
+});
+
+test('Room context follows fixed LOA types and clears when no longer supported', () => {
+  const line = newLine('m1', diagnoses, { code: 'DEMO-M01' });
+  for (const type of ['OLP', 'DENT', 'PEME']) assert.equal(alignRoomLine(line, type).providerRoomType, 'OP');
+  assert.equal(alignRoomLine(line, 'EMERG').providerRoomType, 'EMERGENCY ROOM');
+  const inpatient = alignRoomLine({ ...line, code: 'DEMO-IP01', providerRoomTypeCode: 'DEMO-WARD' }, 'IP');
+  assert.equal(alignRoomLine({ ...inpatient, code: 'DEMO-IP02' }, 'IP').providerRoomTypeCode, '');
+  assert.equal(alignRoomLine(inpatient, 'OLP').providerRoomType, 'OP');
+  assert.equal(alignRoomLine(inpatient, 'OPCON').providerRoomTypeCode, '');
+  assert.deepEqual(roomTypeOptions(inpatient, 'OPCON'), []);
+});
+
+test('Room types and laterality remain separate fields', () => {
+  const line = alignRoomLine(newLine('m2', diagnoses, { code: 'DEMO-R01', modifier: 'Right' }), 'OLP');
+  assert.equal(line.modifier, 'Right');
+  assert.equal(line.providerRoomType, 'OP');
+  assert.deepEqual(lineErrors(line, 'OLP', MEMBERS[0]), []);
 });

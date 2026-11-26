@@ -139,3 +139,12 @@ Validation covers accepted/invalid contacts, optional blanks, email-length bound
 Add and Edit now share a **Permanent teeth / Temporary teeth** selector. Age at availment still supplies the initial default (under 12 temporary, 12+ permanent; assumed threshold pending business confirmation). Users may choose either chart for an individual procedure. The selected chart and tooth persist after Save and reopening Edit; Cancel discards chart changes. Switching chart clears the site's current selection. A changed member resets manual chart choices to that member's age default. Date changes preserve a manual choice for the same member.
 
 This supersedes the automatic-only picker described above. Review and compact cards show the saved chart; existing extracted-tooth and unique-tooth checks apply to both charts. A tooth still cannot be used on two procedures in the same request.
+
+
+## Procedure room types — 26 November 2026
+
+The **Room types** scenario restores per-procedure Room Type selection based on the existing portal's `ProcedureDiagnosisSelector.jsx`. Inpatient medical care offers Ward / Small Private; inpatient monitoring offers Small Private / Large Private. The third sample procedure has no room modifier and therefore no room selector. Both Add and Edit use the same half-width control, and saved choices appear in the compact cards, expanded summary and review.
+
+The demo follows the existing filter: match a hospital room code or hierarchy name against the procedure modifier code/description. It preserves separate `providerRoomTypeCode` and hierarchy-valued `providerRoomType` fields, independent of laterality. Dental, OP Lab and PEME use fixed OP; Emergency uses fixed Emergency Room; consultation hides the room control. As in the existing UI, the editable field is optional. Changing procedure clears the previous room; switching LOA type replaces or clears incompatible room context.
+
+Hospital room identities, procedure combinations and prices are fictional. Ward, Small Private and Large Private hierarchy names come from the workspace reference catalogue; the fixed LOA-type values come from the portal code. This demonstrates selection and retention, not actual room-specific fee calculation or member room-and-board entitlement.

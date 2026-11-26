@@ -42,10 +42,25 @@ export const PROCEDURES = [
   medical("DEMO-M06", "Diagnostic imaging package", 0, { pricing: "pac" }),
   medical("DEMO-M07", "Knee radiograph", 110000, { modifiers: ["Left", "Right", "Bilateral"] }),
   medical("DEMO-R01", "Surgical procedure — sample RVS", 1250000, { group: "RVS", doctors: ["m2", "m3"], modifiers: ["Left", "Right"] }),
+  medical("DEMO-IP01", "Inpatient medical care — room type example", 450000, { types: ["IP"], roomModifiers: [{ code: "10", descr: "WARD" }, { code: "8", descr: "SMALL PRIVATE" }] }),
+  medical("DEMO-IP02", "Inpatient monitoring — room type example", 250000, { types: ["IP"], roomModifiers: [{ code: "8", descr: "SMALL PRIVATE" }, { code: "LARPRIV", descr: "Large Private" }] }),
   ...["Initial consultation", "Follow-up consultation", "Medical clearance"].map((name, i) => medical("DEMO-C0" + (i + 1), name, 60000 + i * 10000, { types: ["OPCON"], doctors: DOCTORS.map((d) => d.id) })),
   medical("DEMO-P01", "Annual wellness package", 450000, { types: ["ACU"] }),
   medical("DEMO-P02", "Pre-employment screening package", 220000, { types: ["PEME"] }),
 ];
+// Fictional hospital room catalogue; hierarchy names mirror the portal references.
+export const ROOM_TYPES = [
+  { value: "DEMO-WARD", label: "Ward", roomHierarchyLabel: "WARD" },
+  { value: "DEMO-SMALL-PRIVATE", label: "Small Private", roomHierarchyLabel: "SMALL PRIVATE" },
+  { value: "DEMO-LARGE-PRIVATE", label: "Large Private", roomHierarchyLabel: "Large Private" },
+];
+// Same fixed LOA-type values as ProcedureDiagnosisSelector in the portal.
+export const FIXED_ROOM_TYPES = {
+  OLP: { value: "OP", label: "OP", roomHierarchyLabel: "OP" },
+  DENT: { value: "OP", label: "OP", roomHierarchyLabel: "OP" },
+  EMERG: { value: "EMERGENCY ROOM", label: "Emergency Room", roomHierarchyLabel: "EMERGENCY ROOM" },
+  PEME: { value: "OP", label: "OP", roomHierarchyLabel: "OP" },
+};
 export const QUADRANTS = [{ value: "UR", label: "Upper right" }, { value: "UL", label: "Upper left" }, { value: "LR", label: "Lower right" }, { value: "LL", label: "Lower left" }];
 export const TOOTH_ROWS = [[18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28], [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38]];
 export const TOOTH_CHARTS = {
