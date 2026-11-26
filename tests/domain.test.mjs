@@ -2,7 +2,7 @@ import { CHIEF_COMPLAINTS, chiefComplaintLabel, contactErrors } from "../src/por
 import { canEnterClaimAmount, claimAmount, claimErrors, claimSample } from '../src/claimDomain.js';
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ageAtDate, alignDentalLine, alignRoomLine, roomTypeFor, roomTypeOptions, dentitionFor, duplicateLineError, usedTeeth, seniorEligible, siteLabel, deductionOptions, deductionTotal, requestAmounts, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
+import { consultationDefaults, nextDiagnosisRank, selectableProcedures, showTodayLabel, ageAtDate, alignDentalLine, alignRoomLine, roomTypeFor, roomTypeOptions, dentitionFor, duplicateLineError, usedTeeth, seniorEligible, siteLabel, deductionOptions, deductionTotal, requestAmounts, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
 import { MEMBERS, ORGANISATIONS, TOOTH_CHARTS } from "../src/data.js";
 const diagnoses = [{ code: "K02.9", rank: "Primary" }];
 test("Manila dates cross UTC midnight correctly", () => {
@@ -122,7 +122,7 @@ test('Request summary keeps agreed CPT amounts, PAC charges and itemized deducti
   assert.equal(summary.deductions.PhilHealth, 15025);
   assert.equal(summary.deductions['Senior Citizen'], 0);
   assert.equal(summary.totalDeductions, 18085);
-  assert.equal(summary.covered, 71915);
+  assert.equal(summary.totalLoa, 271990);
   assert.equal(deductionTotal(lines[0]), 12075);
 });
 
@@ -134,7 +134,7 @@ test('Incomplete charges or deductions stay pending instead of displaying partia
   assert.equal(summary.charged, null);
   assert.equal(summary.deductions.PhilHealth, null);
   assert.equal(summary.totalDeductions, null);
-  assert.equal(summary.covered, null);
+  assert.equal(summary.totalLoa, null);
   assert.equal(deductionTotal(pending), null);
 });
 
@@ -156,10 +156,10 @@ test('A retained Senior Citizen deduction cannot pass after switching to a young
   assert(lineErrors(line, 'DENT', MEMBERS[0], context).some(message => message.includes('Remove Senior Citizen')));
 });
 
-test('Covered amount follows the confirmed subtraction without silently clamping excess deductions', () => {
+test('Total LOA subtracts deductions without silently clamping a negative result', () => {
   const line = newLine('m1', diagnoses, { code: 'DEMO-M01', deductions: { PhilHealth: '500' } });
-  assert.equal(requestAmounts([line]).covered, -5000);
-  assert.deepEqual(requestAmounts([]), { scheduled: 0, charged: 0, deductions: { PhilHealth: 0, 'Senior Citizen': 0, 'PWD discount': 0, 'Other discount': 0 }, totalDeductions: 0, covered: 0 });
+  assert.equal(requestAmounts([line]).totalLoa, -5000);
+  assert.deepEqual(requestAmounts([]), { scheduled: 0, charged: 0, deductions: { PhilHealth: 0, 'Senior Citizen': 0, 'PWD discount': 0, 'Other discount': 0 }, totalDeductions: 0, totalLoa: 0 });
 });
 
 
@@ -292,4 +292,69 @@ test('Room types and laterality remain separate fields', () => {
   assert.equal(line.modifier, 'Right');
   assert.equal(line.providerRoomType, 'OP');
   assert.deepEqual(lineErrors(line, 'OLP', MEMBERS[0]), []);
+});
+
+
+test('Initial consultation seeds Z71.1 once and assigns it to an empty line', () => {
+  const state = { type: 'OPCON', consultationType: 'Initial', diagnoses: [], lines: [newLine('m1', [], { code: 'DEMO-C01' })] };
+  const seeded = consultationDefaults(state);
+  assert.equal(seeded.diagnoses[0].code, 'Z71.1');
+  assert.equal(seeded.diagnoses[0].rank, 'Primary');
+  assert.deepEqual(seeded.lines[0].diagnoses, ['Z71.1']);
+  assert.deepEqual(consultationDefaults(seeded), seeded);
+  assert.deepEqual(state.diagnoses, []);
+  assert.deepEqual(state.lines[0].diagnoses, []);
+  const followup = consultationDefaults({ ...seeded, consultationType: 'Follow up' });
+  assert.deepEqual(followup.diagnoses, []);
+  assert.deepEqual(followup.lines[0].diagnoses, []);
+  assert.deepEqual(consultationDefaults({ ...state, type: 'OLP' }).diagnoses, []);
+});
+
+test('Consultation defaults preserve clinical diagnoses and per-line exclusions', () => {
+  const selected = [{ code: 'R50.9', rank: 'Primary' }, { code: 'R10.9', rank: 'Secondary' }];
+  const state = { type: 'OPCON', consultationType: 'Initial', diagnoses: selected, lines: [newLine('m1', selected, { diagnoses: ['R50.9'] })] };
+  assert.deepEqual(consultationDefaults(state), state);
+  const manual = { ...state, diagnoses: [{ code: 'Z71.1', rank: 'Primary' }], consultationType: 'Follow up' };
+  assert.equal(consultationDefaults(manual).diagnoses[0].code, 'Z71.1');
+  assert.deepEqual(catalogFor('m1', 'OPCON', 'Initial').map(p => p.code), ['DEMO-C01']);
+  assert.deepEqual(catalogFor('m1', 'OPCON', 'Follow up').map(p => p.code), ['DEMO-C02']);
+  assert(lineErrors(newLine('m1', selected, { code: 'DEMO-C01' }), 'OPCON', MEMBERS[0], { consultationType: 'Follow up' }).some(message => message.includes('consultation type')));
+});
+
+test('Emergency removes excluded diagnoses and offers ER-only sample procedures', () => {
+  const selected = [{ code: 'Z71.1', rank: 'Primary', defaultFor: 'Initial' }, { code: 'R50.9', rank: 'Secondary' }, { code: 'Z00.0', rank: 'Other' }];
+  const state = consultationDefaults({ type: 'EMERG', diagnoses: selected, lines: [newLine('m1', selected)] });
+  assert.deepEqual(state.diagnoses, [{ code: 'R50.9', rank: 'Primary' }]);
+  assert.deepEqual(state.lines[0].diagnoses, ['R50.9']);
+  for (const code of ['DEMO-ER01', 'DEMO-ER02', 'DEMO-ER03']) {
+    assert(catalogFor('m1', 'EMERG').some(p => p.code === code));
+    assert(!catalogFor('m1', 'OLP').some(p => p.code === code));
+    assert.equal(alignRoomLine(newLine('m1', state.diagnoses, { code }), 'EMERG').providerRoomType, 'EMERGENCY ROOM');
+  }
+});
+
+test('Selected site-free procedures are hidden but editable and Dental site repeats remain available', () => {
+  const line = newLine('d1', diagnoses, { code: 'DEMO-D01' });
+  const restoration = newLine('d1', diagnoses, { code: 'DEMO-D03', site: '16' });
+  assert(!selectableProcedures('d1', 'DENT', [line, restoration]).some(p => p.code === line.code));
+  assert(selectableProcedures('d1', 'DENT', [line, restoration], line.id).some(p => p.code === line.code));
+  assert(selectableProcedures('d1', 'DENT', [line, restoration]).some(p => p.code === restoration.code));
+  assert(selectableProcedures('d1', 'DENT', []).some(p => p.code === line.code));
+});
+
+test('Diagnosis defaults use Other from the third diagnosis and Today labels follow review scope', () => {
+  assert.deepEqual([0, 1, 2, 3, 4].map(length => nextDiagnosisRank(Array(length))), ['Primary', 'Secondary', 'Other', 'Other', 'Other']);
+  for (const type of ['DENT', 'IP', 'OPCON', 'OLP']) assert.equal(showTodayLabel(type), true);
+  for (const type of ['EMERG', 'PEME', 'ACU']) assert.equal(showTodayLabel(type), false);
+});
+
+
+test('Total LOA requires both scheduled and PAC amounts, and subtracts deductions once', () => {
+  const scheduled = newLine('m1', diagnoses, { code: 'DEMO-ER01', deductions: { PhilHealth: '300' } });
+  const pac = newLine('m1', diagnoses, { code: 'DEMO-ER03', quantity: '2', charge: '650' });
+  assert.equal(requestAmounts([scheduled, pac]).totalLoa, 155000);
+  assert.equal(requestAmounts([scheduled, { ...pac, charge: '' }]).totalLoa, null);
+  assert.equal(requestAmounts([{ ...scheduled, stale: true }, pac]).totalLoa, null);
+  assert.equal(requestAmounts([scheduled, { ...pac, deductions: { 'Other discount': '' } }]).totalLoa, null);
+  assert.equal(requestAmounts([{ ...scheduled, deductions: { PhilHealth: '1500' } }, pac]).totalLoa, 35000);
 });

@@ -1,3 +1,4 @@
+import { verifyReviewUpdates } from "./review.browser.mjs";
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 const channel = process.env.LOA_DEMO_BROWSER_CHANNEL === "bundled"
@@ -155,7 +156,7 @@ try {
   const summary = page.getByRole("complementary", { name: "Request summary" });
   await expect(summary.locator(".deduction-total dd")).toHaveText("₱100.00");
   await expect(summary.locator(".summary-totals")).toContainText("₱4,650.00");
-  await expect(summary.locator(".covered-total")).toContainText("₱4,550.00");
+  await expect(summary.locator(".loa-total")).toContainText("₱4,550.00");
   await summary.locator(".summary-line-details > summary").click();
   await expect(summary.locator(".summary-context")).toContainText("Others");
   await expect(summary.locator(".summary-lines-table tbody tr")).toHaveCount(4);
@@ -345,7 +346,7 @@ try {
     }
     await page.getByRole("button", { name: "Save changes", exact: true }).click();
   }
-  await expect(summary.locator(".covered-total")).toContainText("₱4,050.00");
+  await expect(summary.locator(".loa-total")).toContainText("₱4,050.00");
   await expect(summary.locator(".deduction-total dd")).toHaveText("₱100.00");
   await page.getByRole("button", { name: "Sample members", exact: true }).click();
   await page.getByRole("button", { name: /Alina Rivera/ }).click();
@@ -425,6 +426,11 @@ try {
   await expect(page.getByRole('dialog')).toContainText('Room type: Small Private');
   await expect(page.getByRole('dialog')).toContainText('Room type: Large Private');
   await page.getByRole('button', { name: 'Back to edit', exact: true }).click();
+  // A site-free procedure can be picked again after its previous line is removed.
+  await page.getByRole('button', { name: 'Remove line 2', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove procedure', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove line 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove procedure', exact: true }).click();
   await page.getByRole('button', { name: 'Add procedure line', exact: true }).click();
   await page.getByRole('combobox', { name: 'Procedure code or description', exact: true }).fill('Inpatient medical care');
   await page.getByRole('option', { name: /Inpatient medical care/ }).click();
@@ -452,6 +458,7 @@ try {
   await expect(roomSelect).toHaveText('Emergency Room');
   await expect(roomSelect).toHaveAttribute('aria-disabled', 'true');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await verifyReviewUpdates(page);
   await page.getByRole('button', { name: 'Claim creation', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Add claim', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Find LOA', exact: true }).click();
@@ -487,5 +494,5 @@ try {
   await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "covered amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "procedure-specific and fixed room types", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "Total LOA Amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "procedure-specific and fixed room types", "ER sample journey", "replaceable Initial consultation Z71.1 default", "consultation-specific procedures", "selected option filtering", "26-point review audit", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }

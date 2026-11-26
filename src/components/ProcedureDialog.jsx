@@ -2,17 +2,18 @@ import { useRef, useState } from "react";
 import { Dialog, DialogActions, DialogContent, DialogTitle, Alert, Autocomplete, Button, Checkbox, FormControlLabel, IconButton, InputAdornment, MenuItem, TextField } from "@mui/material";
 import { LockKeyhole, X } from "lucide-react";
 import { DOCTORS, FIXED_ROOM_TYPES } from "../data.js";
-import { ageAtDate, alignDentalLine, alignRoomLine, roomTypeOptions, usedTeeth, amountFor, deductionOptions, seniorEligible, catalogFor, doctorSpecialty, lineErrors, money, procedureFor } from "../domain.js";
+import { ageAtDate, alignDentalLine, alignRoomLine, roomTypeOptions, usedTeeth, amountFor, deductionOptions, seniorEligible, catalogFor, selectableProcedures, doctorSpecialty, lineErrors, money, procedureFor } from "../domain.js";
 import DentalSitePicker from "./DentalSitePicker.jsx";
 
-export default function ProcedureDialog({ initialLine, index, isNew, type, member, date, medicalClass, doctors, diagnoses, lines, onSave, onClose }) {
+export default function ProcedureDialog({ initialLine, index, isNew, type, member, date, medicalClass, consultationType, doctors, diagnoses, lines, onSave, onClose }) {
   const [draft, setDraft] = useState(initialLine);
   const line = alignRoomLine(alignDentalLine(draft, member, date), type);
   const [showErrors, setShowErrors] = useState(false);
   const errorSummary = useRef(null);
-  const procedure = procedureFor(line); const catalogue = catalogFor(line.doctorId, type);
+  const procedure = procedureFor(line); const catalogue = catalogFor(line.doctorId, type, consultationType);
+  const options = selectableProcedures(line.doctorId, type, lines, line.id, consultationType);
   const selectedDoctor = DOCTORS.find((doctor) => doctor.id === line.doctorId) ?? null;
-  const errors = lineErrors(line, type, member, { type, member, date, medicalClass, lines }); const amount = amountFor(line);
+  const errors = lineErrors(line, type, member, { type, member, date, medicalClass, consultationType, diagnoses, lines }); const amount = amountFor(line);
   const update = (change) => setDraft((current) => ({ ...alignDentalLine(current, member, date), ...change }));
   const selectProcedure = (selected) => { update({ code: selected?.code ?? "", site: "", modifier: "", providerRoomTypeCode: "", providerRoomType: "", charge: "", quantity: "1", stale: false, assistant: "", anesthetist: "", deductions: {} }); };
   const rvs = procedure?.group === "RVS";
@@ -34,7 +35,7 @@ export default function ProcedureDialog({ initialLine, index, isNew, type, membe
     <DialogContent dividers>
         {showErrors && errors.length > 0 && <div ref={errorSummary} tabIndex={-1} className="line-validation"><Alert severity="error"><ul className="error-list">{errors.map((error) => <li key={error}>{error}</li>)}</ul></Alert></div>}
         <div className="field-grid two"><Autocomplete options={doctors} value={selectedDoctor} getOptionLabel={(doctor) => doctor.name} isOptionEqualToValue={(a, b) => a.id === b.id} onChange={(_event, doctor) => update({ doctorId: doctor?.id ?? "", stale: Boolean(line.code) })} renderOption={(props, doctor) => { const { key, ...rest } = props; return <li key={key} {...rest}><div><strong>{doctor.name}</strong><small className="option-subtitle">{doctor.specialty}</small></div></li>; }} renderInput={(params) => <TextField {...params} size="small" required label={rvs ? "Main doctor" : "Procedure doctor"} helperText={"Specialty: " + doctorSpecialty(line.doctorId)} />} />
-          <div><Autocomplete options={catalogue} disabled={!line.doctorId} value={procedure ?? null} getOptionLabel={(p) => p.code + " · " + p.name} isOptionEqualToValue={(a, b) => a.code === b.code} onChange={(_event, selected) => selectProcedure(selected)} renderInput={(params) => <TextField {...params} size="small" required label="Procedure code or description" />} renderOption={(props, p) => { const { key, ...rest } = props; return <li key={key} {...rest}><div><strong>{p.name}</strong><small className="option-subtitle">{p.code} · {p.pricing === "pac" ? "Price As Charged" : p.pricing === "conflict" ? "Pricing conflict" : money(p.cents)}</small></div></li>; }} /></div>
+          <div><Autocomplete options={options} disabled={!line.doctorId} value={procedure ?? null} getOptionLabel={(p) => p.code + " · " + p.name} isOptionEqualToValue={(a, b) => a.code === b.code} onChange={(_event, selected) => selectProcedure(selected)} renderInput={(params) => <TextField {...params} size="small" required label="Procedure code or description" />} renderOption={(props, p) => { const { key, ...rest } = props; return <li key={key} {...rest}><div><strong>{p.name}</strong><small className="option-subtitle">{p.code} · {p.pricing === "pac" ? "Price As Charged" : p.pricing === "conflict" ? "Pricing conflict" : money(p.cents)}</small></div></li>; }} /></div>
         </div>
         {line.stale && <Alert severity="warning" action={catalogue.some((p) => p.code === line.code) ? <Button color="inherit" size="small" onClick={() => update({ stale: false })}>Reconfirm</Button> : undefined}>Doctor or request context changed. Reconfirm an available procedure or choose a replacement; the old quote cannot be used.</Alert>}
         {procedure && <>

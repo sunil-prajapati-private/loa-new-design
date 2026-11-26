@@ -196,8 +196,8 @@ body{background:#f7f8fa!important}
 @media(max-width:850px){.detailed-summary .summary-context{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.summary-totals{grid-template-columns:1fr;gap:8px}.summary-totals>div{padding:12px}.summary-totals strong{font-size:20px}.summary-heading{align-items:flex-start}.detailed-summary .summary-context{grid-template-columns:1fr;gap:12px}.summary-line-details>summary>span{display:block;margin:6px 0 0}}
 .summary-totals{grid-template-columns:repeat(3,minmax(0,1fr))}
-.summary-totals .covered-total{background:#edf5ff;border-color:#bcd4f5}
-.covered-total small{display:block;font-size:11px;color:#545563;line-height:1.5;margin-top:7px}
+.summary-totals .loa-total{background:#edf5ff;border-color:#bcd4f5}
+.loa-total small{display:block;font-size:11px;color:#545563;line-height:1.5;margin-top:7px}
 .dental-chart-selector{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e0e7f0}
 .dental-chart-selector>span{font-size:13px;font-weight:600;color:#41536c}
 .dental-chart-selector .MuiToggleButton-root{text-transform:none;font-size:12px;padding:6px 12px}
@@ -214,8 +214,8 @@ body{background:#f7f8fa!important}
 .amount-summary .summary-totals{gap:12px;margin:12px 0 5px}
 .amount-summary .summary-totals>div{padding:8px 12px;border:0;border-left:2px solid #e0e5ed;border-radius:0;background:transparent;min-width:0}
 .amount-summary .summary-totals strong{font-size:20px;margin-top:4px;overflow-wrap:anywhere}
-.amount-summary .summary-totals .covered-total{background:#edf5ff;border-left-color:#0053cc;border-radius:4px}
-.covered-formula{font-size:11px;color:#657185;margin:0 0 10px;line-height:1.5}
+.amount-summary .summary-totals .loa-total{background:#edf5ff;border-left-color:#0053cc;border-radius:4px}
+.loa-formula{font-size:11px;color:#657185;margin:0 0 10px;line-height:1.5}
 .amount-summary .deduction-breakdown{padding-top:10px}
 .amount-summary .deduction-breakdown h4{font-size:11px;font-weight:500;color:#657185;margin:0 0 6px}
 .amount-summary .deduction-breakdown dl{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0!important}
@@ -236,7 +236,7 @@ body{background:#f7f8fa!important}
  .amount-summary .summary-totals>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px}
  .amount-summary .summary-totals span{font-size:11px;flex:1}
  .amount-summary .summary-totals strong{font-size:16px;margin:0;text-align:right;max-width:56%}
- .covered-formula{font-size:10px;margin:6px 0 8px}
+ .loa-formula{font-size:10px;margin:6px 0 8px}
  .amount-summary .deduction-breakdown dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
  .amount-summary .deduction-breakdown .deduction-total{display:flex!important;justify-content:space-between;align-items:baseline;grid-column:1/-1;border-left:0;border-top:1px solid #edf0f5;padding:6px 0 0!important}
  .compact-summary .summary-line-details>summary>span{display:inline;margin:0 0 0 5px;font-size:10px;white-space:nowrap}

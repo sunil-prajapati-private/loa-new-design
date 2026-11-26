@@ -1,5 +1,5 @@
 import { chiefComplaintError, contactErrors } from "./portalForm.js";
-import { DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS, ROOM_TYPES, FIXED_ROOM_TYPES } from "./data.js";
+import { DIAGNOSES, DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS, ROOM_TYPES, FIXED_ROOM_TYPES } from "./data.js";
 export const money = (cents) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(cents / 100);
 export const doctorName = (id) => DOCTORS.find((doctor) => doctor.id === id)?.name ?? "Choose doctor";
 export const doctorSpecialty = (id) => DOCTORS.find((doctor) => doctor.id === id)?.specialty ?? "Select a doctor to view specialty";
@@ -65,7 +65,25 @@ export function parseCents(value) {
   const [whole, fraction = ""] = String(value).split(".");
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
-export const catalogFor = (doctorId, type) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type));
+export const catalogFor = (doctorId, type, consultationType) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type) && (type !== "OPCON" || !consultationType || procedure.consultationType === consultationType));
+export function selectableProcedures(doctorId, type, lines, editingId, consultationType) {
+  return catalogFor(doctorId, type, consultationType).filter((procedure) => procedure.site !== "none" || !lines.some((line) => line.id !== editingId && line.code === procedure.code));
+}
+export const ER_EXCLUDED_DIAGNOSES = new Set(["Z00.0", "Z02.1", "Z99.7", "Z71.1"]);
+export const nextDiagnosisRank = (diagnoses) => !diagnoses.length ? "Primary" : diagnoses.length === 1 ? "Secondary" : "Other";
+export const showTodayLabel = (type) => ["IP", "OLP", "OPCON", "DENT"].includes(type);
+// Seed only an empty initial-consultation diagnosis list; retain clinical choices.
+// The portal permits replacing/removing this default, so it is not reapplied on every render.
+export function consultationDefaults(state) {
+  const initial = state.type === "OPCON" && state.consultationType === "Initial";
+  let diagnoses = state.diagnoses.filter((dx) => initial || dx.defaultFor !== "Initial");
+  if (state.type === "EMERG") diagnoses = diagnoses.filter((dx) => !ER_EXCLUDED_DIAGNOSES.has(dx.code));
+  if (initial && !diagnoses.length) diagnoses = [{ ...DIAGNOSES.find((dx) => dx.code === "Z71.1"), rank: "Primary", defaultFor: "Initial" }];
+  if (diagnoses.length && !diagnoses.some((dx) => dx.rank === "Primary")) diagnoses = diagnoses.map((dx, i) => i ? dx : { ...dx, rank: "Primary" });
+  const codes = diagnoses.map((dx) => dx.code);
+  const added = codes.filter((code) => !state.diagnoses.some((dx) => dx.code === code));
+  return { ...state, diagnoses, lines: state.lines.map((line) => ({ ...line, diagnoses: [...line.diagnoses.filter((code) => codes.includes(code)), ...added] })) };
+}
 export function newLine(doctorId, diagnoses, seed = {}) {
   return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", providerRoomTypeCode: "", providerRoomType: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
 }
@@ -87,7 +105,7 @@ export function requestAmounts(lines) {
   const scheduled = sumAmounts(lines.filter((line) => procedureFor(line)?.pricing !== "pac").map(amountFor));
   const charged = sumAmounts(lines.filter((line) => procedureFor(line)?.pricing === "pac").map(amountFor));
   const totalDeductions = sumAmounts(Object.values(deductions));
-  return { scheduled, charged, deductions, totalDeductions, covered: scheduled === null || totalDeductions === null ? null : scheduled - totalDeductions };
+  return { scheduled, charged, deductions, totalDeductions, totalLoa: scheduled === null || charged === null || totalDeductions === null ? null : scheduled + charged - totalDeductions };
 }
 export function deductionOptions(_line, { type, member, date }) {
   const options = [];
@@ -100,13 +118,15 @@ export function lineErrors(line, type, member, context) {
   const procedure = procedureFor(line);
   if (!line.doctorId) errors.push("Select a procedure doctor.");
   if (!procedure) return [...errors, "Select a procedure."];
-  if (!catalogFor(line.doctorId, type).some((entry) => entry.code === line.code)) errors.push("This procedure is unavailable for the selected doctor and LOA type.");
+  if (!catalogFor(line.doctorId, type, context?.consultationType).some((entry) => entry.code === line.code)) errors.push("This procedure is unavailable for the selected doctor, LOA type or consultation type.");
   if (context?.lines) {
     const duplicate = duplicateLineError(line, context.lines);
     if (duplicate) errors.push(duplicate);
   }
   if (line.stale) errors.push("Reconfirm this procedure after changing the doctor or request context.");
   if (!line.diagnoses.length) errors.push("Keep at least one diagnosis on this line.");
+  if (context?.diagnoses && line.diagnoses.some((code) => !context.diagnoses.some((dx) => dx.code === code))) errors.push("Select diagnoses from the current request.");
+  if (type === "EMERG" && line.diagnoses.some((code) => ER_EXCLUDED_DIAGNOSES.has(code))) errors.push("Select an applicable Emergency diagnosis.");
   if (procedure.site !== "none" && !line.site) errors.push("Select one " + procedure.site + ".");
   if (type === "DENT" && procedure.site !== "none") {
     if (!dentitionFor(member, context?.date ?? dates()[0])) errors.push("Verify the member and availment date before selecting a dental site.");
@@ -137,7 +157,7 @@ export function requestErrors(state) {
   if (!state.attending) result.push("Select a requesting / attending doctor.");
   if (!state.member) result.push("Find a member using the sample card number and date of birth.");
   if (state.type === "DENT" && state.member && !state.member.dental) result.push("This sample member has no Dental benefit. Use Alina or Daniel for the Dental journey.");
-  if (!dates().includes(state.date)) result.push("Choose today, tomorrow or the following day in Philippine time.");
+  if (!dates().includes(state.date)) result.push("Choose a date within the displayed three-day window in Philippine time.");
   if (!state.diagnoses.length) result.push("Add at least one diagnosis before procedures.");
   if (!state.lines.length) result.push("Add at least one procedure line.");
   if (state.lines.some((line) => procedureFor(line)?.pricing === "pac") && !state.remarks?.trim()) result.push("Enter remarks for the Price As Charged procedure(s).");

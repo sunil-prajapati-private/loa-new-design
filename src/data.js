@@ -21,6 +21,7 @@ export const TYPES = [{ code: "DENT", label: "Dental" }, { code: "OPCON", label:
 export const DIAGNOSES = [
   { code: "K02.9", label: "Dental caries, unspecified", dental: true }, { code: "K05.1", label: "Chronic gingivitis", dental: true }, { code: "K04.0", label: "Pulpitis", dental: true }, { code: "K08.9", label: "Disorder of teeth and supporting structures", dental: true },
   { code: "R10.9", label: "Abdominal pain, unspecified" }, { code: "M25.56", label: "Pain in knee" }, { code: "R50.9", label: "Fever, unspecified" }, { code: "Z00.0", label: "General medical examination" }, { code: "Z02.1", label: "Pre-employment examination" },
+  { code: "Z71.1", label: "Person with feared complaint in whom no diagnosis is made" },
 ];
 const dental = (code, name, cents, site, group = "Dental", doctors = ["d1", "d2", "d3"]) => ({ code, name, cents, site, group, doctors, types: ["DENT"], pricing: "scheduled", unit: "service" });
 const medical = (code, name, cents, options = {}) => ({ code, name, cents, site: "none", group: "Medical", doctors: ["m1", "m2", "m3"], types: ["OLP", "IP", "EMERG"], pricing: "scheduled", unit: "service", ...options });
@@ -44,7 +45,10 @@ export const PROCEDURES = [
   medical("DEMO-R01", "Surgical procedure — sample RVS", 1250000, { group: "RVS", doctors: ["m2", "m3"], modifiers: ["Left", "Right"] }),
   medical("DEMO-IP01", "Inpatient medical care — room type example", 450000, { types: ["IP"], roomModifiers: [{ code: "10", descr: "WARD" }, { code: "8", descr: "SMALL PRIVATE" }] }),
   medical("DEMO-IP02", "Inpatient monitoring — room type example", 250000, { types: ["IP"], roomModifiers: [{ code: "8", descr: "SMALL PRIVATE" }, { code: "LARPRIV", descr: "Large Private" }] }),
-  ...["Initial consultation", "Follow-up consultation", "Medical clearance"].map((name, i) => medical("DEMO-C0" + (i + 1), name, 60000 + i * 10000, { types: ["OPCON"], doctors: DOCTORS.map((d) => d.id) })),
+  medical("DEMO-ER01", "Emergency department assessment", 120000, { types: ["EMERG"] }),
+  medical("DEMO-ER02", "Emergency observation", 180000, { types: ["EMERG"] }),
+  medical("DEMO-ER03", "Emergency supplies — sample charge", 0, { types: ["EMERG"], pricing: "pac" }),
+  ...["Initial consultation", "Follow-up consultation", "Medical clearance"].map((name, i) => medical("DEMO-C0" + (i + 1), name, 60000 + i * 10000, { types: ["OPCON"], consultationType: ["Initial", "Follow up", "Clearance"][i], doctors: DOCTORS.map((d) => d.id) })),
   medical("DEMO-P01", "Annual wellness package", 450000, { types: ["ACU"] }),
   medical("DEMO-P02", "Pre-employment screening package", 220000, { types: ["PEME"] }),
 ];
