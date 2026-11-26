@@ -324,7 +324,7 @@ test('Consultation defaults preserve clinical diagnoses and per-line exclusions'
 });
 
 test('Emergency removes excluded diagnoses and offers ER-only sample procedures', () => {
-  const selected = [{ code: 'Z71.1', rank: 'Primary', defaultFor: 'Initial' }, { code: 'R50.9', rank: 'Secondary' }, { code: 'Z00.0', rank: 'Other' }];
+  const selected = [{ code: 'Z71.1', rank: 'Primary', defaultFor: 'Initial' }, { code: 'R50.9', rank: 'Secondary' }, { code: 'Z00.0', rank: 'Other Diagnosys' }];
   const state = consultationDefaults({ type: 'EMERG', diagnoses: selected, lines: [newLine('m1', selected)] });
   assert.deepEqual(state.diagnoses, [{ code: 'R50.9', rank: 'Primary' }]);
   assert.deepEqual(state.lines[0].diagnoses, ['R50.9']);
@@ -344,8 +344,8 @@ test('Selected site-free procedures are hidden but editable and Dental site repe
   assert(selectableProcedures('d1', 'DENT', []).some(p => p.code === line.code));
 });
 
-test('Diagnosis defaults use Other from the third diagnosis and Today labels follow review scope', () => {
-  assert.deepEqual([0, 1, 2, 3, 4].map(length => nextDiagnosisRank(Array(length))), ['Primary', 'Secondary', 'Other', 'Other', 'Other']);
+test('Diagnosis defaults use Other Diagnosys from the third diagnosis and Today labels follow review scope', () => {
+  assert.deepEqual([0, 1, 2, 3, 4].map(length => nextDiagnosisRank(Array(length))), ['Primary', 'Secondary', 'Other Diagnosys', 'Other Diagnosys', 'Other Diagnosys']);
   for (const type of ['DENT', 'IP', 'OPCON', 'OLP']) assert.equal(showTodayLabel(type), true);
   for (const type of ['EMERG', 'PEME', 'ACU']) assert.equal(showTodayLabel(type), false);
 });
