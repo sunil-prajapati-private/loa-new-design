@@ -218,10 +218,45 @@ try {
   await expect(page.getByText("No sample member matches", { exact: false })).toBeVisible();
   await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
-  // Add and Edit share the age-derived chart; the younger sample gets temporary teeth.
+  // Add and Edit retain a manual choice independently of the member's age default.
   await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
-  await expect(page.getByRole("dialog").locator(".automatic-dental-chart")).toContainText("Permanent teeth");
-  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Temporary teeth", exact: true }).click();
+  await expect(page.locator(".dental-chart .tooth")).toHaveCount(20);
+  await expect(page.getByRole("button", { name: "Tooth 16", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.locator(".line-validation")).toContainText("Select one tooth");
+  await page.getByRole("button", { name: "Tooth 55", exact: true }).click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.locator(".procedure-line").first()).toContainText("Tooth 55 · Temporary teeth");
+  await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Tooth 55", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Permanent teeth", exact: true }).click();
+  await expect(page.locator(".dental-chart .tooth")).toHaveCount(32);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.locator(".procedure-line").first()).toContainText("Tooth 55 · Temporary teeth");
+  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Periapical radiograph");
+  await page.getByRole("option", { name: /Periapical radiograph/ }).click();
+  await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Temporary teeth", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Tooth 55 — used by another procedure", exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "Tooth 54", exact: true }).click();
+  await page.getByRole("button", { name: "Add procedure", exact: true }).click();
+  await page.getByRole("button", { name: "Edit line 4", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Tooth 54", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Review request", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("Tooth 55 · Temporary teeth");
+  await expect(page.getByRole("dialog")).toContainText("Tooth 54 · Temporary teeth");
+  await page.getByRole("button", { name: "Back to edit" }).click();
+  await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
+  // The younger sample still defaults to temporary teeth.
+  await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toBeEnabled();
   await expect(page.locator(".dental-chart .tooth")).toHaveCount(32);
   await expect(page.getByRole("button", { name: "Tooth 16", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -230,7 +265,7 @@ try {
   await expect(page.getByRole("heading", { name: "Maya Rivera" })).toBeVisible();
   await expect(page.locator(".procedure-line").first()).not.toContainText("Tooth 16");
   await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
-  await expect(page.getByRole("dialog").locator(".automatic-dental-chart")).toContainText("Temporary teeth");
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".dental-chart .tooth")).toHaveCount(20);
   await expect(page.getByRole("button", { name: "Tooth 16", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Tooth 65 — previously extracted", exact: true })).toBeDisabled();
@@ -250,7 +285,7 @@ try {
   await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
   await page.getByRole("combobox", { name: "Procedure code or description", exact: true }).fill("Periapical radiograph");
   await page.getByRole("option", { name: /Periapical radiograph/ }).click();
-  await expect(page.getByRole("dialog").locator(".automatic-dental-chart")).toContainText("Temporary teeth");
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".dental-chart .tooth")).toHaveCount(20);
   await expect(page.getByRole("button", { name: "Tooth 55 — used by another procedure", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Tooth 54", exact: true }).click();
@@ -281,6 +316,10 @@ try {
   await expect(page.locator(".procedure-dialog .MuiDialog-container")).toHaveCSS("opacity", "1");
   await page.locator(".anatomy-panel").scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path: "test-results/temporary-teeth-mobile.png" });
+  await page.getByRole("button", { name: "Permanent teeth", exact: true }).click();
+  await expect(page.locator(".dental-chart .tooth")).toHaveCount(32);
+  await page.getByRole("button", { name: "Temporary teeth", exact: true }).click();
+  await expect(page.locator(".dental-chart .tooth")).toHaveCount(20);
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 1050 });
   // Senior Citizen availability follows the verified member's age, including Dental.
@@ -337,7 +376,7 @@ try {
     await expect.poll(() => page.locator(".loa-journey-nav").evaluate(el => Math.round(el.getBoundingClientRect().top))).toBe(width <= 600 ? 60 : 64);
     await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
     await expect.poll(() => page.getByRole("dialog").evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
-    await expect(page.getByRole("dialog").locator(".automatic-dental-chart")).toContainText("Permanent teeth");
+    await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".dental-chart .tooth")).toHaveCount(32);
     await expect.poll(() => page.getByRole("dialog").evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
     await expect(page.getByRole("button", { name: "Save changes", exact: true })).toBeInViewport();
@@ -393,5 +432,5 @@ try {
   await page.locator('#claim-procedures').scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path:'test-results/mobile-claim.png'});
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "covered amount and PHP deductions", "senior age eligibility", "age-based dental charts in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
+  process.stdout.write(JSON.stringify({ passed: true, journeys: ["member lookup", "dental tooth and quadrant", "procedure popup save, cancel, duplicate and remove", "independent applied diagnoses", "requester details and specialties", "portal chief complaint dropdown", "mobile and email validation", "sticky navigation", "covered amount and PHP deductions", "senior age eligibility", "age-based dental defaults and manual chart selection in Add and Edit", "tooth uniqueness across procedures", "procedure dropdown", "scheduled and PAC pricing", "RVS roles", "validation", "review and simulated submission", "claim lookup, missing-charge entry and manual-review block"], widths: [320, 375, 768, 1440], externalRequests: 0, pageErrors: 0 }) + "\n");
 } finally { await browser.close(); }

@@ -243,10 +243,12 @@ body{background:#f7f8fa!important}
  .summary-footer{gap:4px}
 }
 
-/* The same automatic age-based chart is used in Add and Edit. */
-.automatic-dental-chart{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.automatic-dental-chart small{font-size:11px;color:#545563}
+/* Add and Edit share a chart selector with an age-based default. */
+.dental-chart-controls{display:flex;align-items:flex-end;gap:7px;flex-direction:column}
+.dental-chart-controls .MuiToggleButton-root{min-height:36px}
+.dental-chart-controls small{max-width:100%;line-height:1.5}
+.dental-chart-controls small{font-size:11px;color:#545563}
 .tooth.tooth-used:disabled{opacity:1;background:#fff5df;color:#a16e1d;border-color:#e8d4ac}
 .tooth.tooth-used:disabled span{text-decoration:none}
 .legend-used{background:#e8c17d}
-@media(max-width:600px){.automatic-dental-chart{gap:5px}.automatic-dental-chart small{font-size:10px}}
+@media(max-width:600px){.dental-chart-controls{gap:5px;align-items:flex-start}.dental-chart-controls small{font-size:10px}}

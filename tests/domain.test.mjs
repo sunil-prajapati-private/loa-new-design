@@ -163,7 +163,7 @@ test('Covered amount follows the confirmed subtraction without silently clamping
 });
 
 
-test('The demo dental chart switches on the 12th birthday at availment', () => {
+test('The default dental chart switches on the 12th birthday at availment', () => {
   const member = { ...MEMBERS[3], dob: '2014-11-27' };
   assert.equal(dentitionFor(member, '2026-11-26'), 'temporary');
   assert.equal(dentitionFor(member, '2026-11-27'), 'permanent');
@@ -174,7 +174,7 @@ test('The demo dental chart switches on the 12th birthday at availment', () => {
   assert.equal(changed.dentition, 'permanent');
   assert.equal(changed.site, '');
   assert.equal(changed.stale, true);
-  assert(lineErrors(line, 'DENT', member, { date: '2026-11-27' }).some(message => message.includes("member's age")));
+  assert.deepEqual(lineErrors(line, 'DENT', member, { date: '2026-11-27' }), []);
 });
 
 test('A tooth cannot be reused across different procedures or doctors in one request', () => {
@@ -236,4 +236,27 @@ test('Chief complaint accepts portal codes and shows descriptions in review', ()
   for (const complaint of ['Fever', 'fever', '99']) assert(requestErrors({ ...form, complaint }).includes('Select a chief complaint from the list.'));
   for (const type of ['OPCON', 'IP', 'EMERG']) assert(requestErrors({ ...form, type }).includes('Select a chief complaint.'));
   for (const type of ['DENT', 'OLP', 'ACU', 'PEME']) assert(!requestErrors({ ...form, type }).includes('Select a chief complaint.'));
+});
+
+
+test('Manual dental charts persist for the same member and validate independently of age', () => {
+  const adult = MEMBERS[0];
+  const temporary = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'temporary', dentitionOverride: 'temporary', dentitionMemberId: adult.id, site: '55' });
+  assert.deepEqual(alignDentalLine(temporary, adult, dates()[0]), temporary);
+  assert.deepEqual(alignDentalLine(temporary, adult, dates()[1]), temporary);
+  assert.deepEqual(lineErrors(temporary, 'DENT', adult), []);
+  const permanent = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'permanent', dentitionOverride: 'permanent', dentitionMemberId: MEMBERS[3].id, site: '16' });
+  assert.deepEqual(alignDentalLine(permanent, MEMBERS[3], dates()[0]), permanent);
+  assert.deepEqual(lineErrors(permanent, 'DENT', MEMBERS[3]), []);
+  assert(lineErrors({ ...temporary, site: '16' }, 'DENT', adult).some(message => message.includes('selected dental chart')));
+});
+
+test('Changing member resets a manual chart and rejects an incompatible saved tooth', () => {
+  const line = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'temporary', dentitionOverride: 'temporary', dentitionMemberId: MEMBERS[0].id, site: '55' });
+  const changed = alignDentalLine(line, MEMBERS[1], dates()[0]);
+  assert.equal(changed.dentition, 'permanent');
+  assert.equal(changed.dentitionOverride, null);
+  assert.equal(changed.dentitionMemberId, null);
+  assert.equal(changed.site, '');
+  assert.equal(changed.stale, true);
 });

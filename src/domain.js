@@ -19,10 +19,12 @@ export function dentitionFor(member, date) {
   return age === null ? null : age < PERMANENT_TEETH_AGE ? "temporary" : "permanent";
 }
 export function alignDentalLine(line, member, date) {
-  const dentition = dentitionFor(member, date);
-  if (!dentition) return line;
+  const ageDefault = dentitionFor(member, date);
+  if (!ageDefault) return line;
+  const dentitionOverride = line.dentitionMemberId === member.id && TOOTH_CHARTS[line.dentitionOverride] ? line.dentitionOverride : null;
+  const dentition = dentitionOverride ?? ageDefault;
   const invalidTooth = Boolean(line.site && procedureFor(line)?.site === "tooth" && !TOOTH_CHARTS[dentition].rows.flat().map(String).includes(line.site));
-  return { ...line, dentition, site: invalidTooth ? "" : line.site, stale: line.stale || invalidTooth };
+  return { ...line, dentition, dentitionOverride, dentitionMemberId: dentitionOverride ? member.id : null, site: invalidTooth ? "" : line.site, stale: line.stale || invalidTooth };
 }
 export function usedTeeth(lines, editingId) {
   return lines.filter((line) => line.id !== editingId && procedureFor(line)?.site === "tooth" && line.site).map((line) => line.site);
@@ -46,7 +48,7 @@ export function parseCents(value) {
 }
 export const catalogFor = (doctorId, type) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type));
 export function newLine(doctorId, diagnoses, seed = {}) {
-  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", modifier: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
+  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", dentitionOverride: null, dentitionMemberId: null, modifier: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
 }
 export function amountFor(line) {
   const procedure = procedureFor(line);
@@ -88,9 +90,8 @@ export function lineErrors(line, type, member, context) {
   if (!line.diagnoses.length) errors.push("Keep at least one diagnosis on this line.");
   if (procedure.site !== "none" && !line.site) errors.push("Select one " + procedure.site + ".");
   if (type === "DENT" && procedure.site !== "none") {
-    const expectedChart = dentitionFor(member, context?.date ?? dates()[0]);
-    if (!expectedChart) errors.push("Verify the member and availment date before selecting a dental site.");
-    else if ((line.dentition ?? "permanent") !== expectedChart) errors.push("The dental chart must match the member's age at availment.");
+    if (!dentitionFor(member, context?.date ?? dates()[0])) errors.push("Verify the member and availment date before selecting a dental site.");
+    if (!toothChartFor(line)) errors.push("Select a Permanent or Temporary dental chart.");
   }
   if (procedure.site === "tooth" && line.site && !toothChartFor(line)?.rows.flat().map(String).includes(line.site)) errors.push("Select a tooth from the selected dental chart.");
   if (procedure.site === "quadrant" && line.site && !QUADRANTS.some((quadrant) => quadrant.value === line.site)) errors.push("Select a valid dental quadrant.");

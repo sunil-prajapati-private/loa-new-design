@@ -132,3 +132,10 @@ Chief complaint is now a dropdown containing the 17 `CHIEF_COMPLAINT` code/descr
 Mobile and email remain optional, but supplied invalid values prevent review. Errors appear below each field on blur or review and clear as corrected. Mobile validation follows the portal's `src/utils/philippineMobileNumber.js`: `09` plus nine digits or `+639` plus nine digits, allowing spaces and hyphens. Email uses the pure validator from `src/modules/registration/emailValidation.js`, including the 50-character maximum and local/domain-format checks. These dependency-free copies and the complaint options live in `src/portalForm.js`.
 
 Validation covers accepted/invalid contacts, optional blanks, email-length boundaries, complaint selection/clearing, required complaints, and description display in summary/review, alongside the existing browser journeys.
+
+
+## Permanent / Temporary selector restored — 26 November 2026
+
+Add and Edit now share a **Permanent teeth / Temporary teeth** selector. Age at availment still supplies the initial default (under 12 temporary, 12+ permanent; assumed threshold pending business confirmation). Users may choose either chart for an individual procedure. The selected chart and tooth persist after Save and reopening Edit; Cancel discards chart changes. Switching chart clears the site's current selection. A changed member resets manual chart choices to that member's age default. Date changes preserve a manual choice for the same member.
+
+This supersedes the automatic-only picker described above. Review and compact cards show the saved chart; existing extracted-tooth and unique-tooth checks apply to both charts. A tooth still cannot be used on two procedures in the same request.
