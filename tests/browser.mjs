@@ -8,6 +8,14 @@ const origin = process.env.LOA_DEMO_URL ?? "http://127.0.0.1:4178/";
 const allowedOrigin = new URL(origin).origin;
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
 const errors = []; const external = [];
+async function expectUnobscured(control) {
+  await expect(control).toBeFocused();
+  await expect.poll(() => control.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return element.contains(hit);
+  })).toBe(true);
+}
 page.on("pageerror", (error) => errors.push(error.message));
 await page.route("**/*", (route) => { if (new URL(route.request().url()).origin !== allowedOrigin) { external.push(route.request().url()); return route.abort(); } return route.continue(); });
 try {
@@ -39,6 +47,7 @@ try {
   await page.getByRole("button", { name: "Tooth 17", exact: true }).click();
   await page.getByRole("checkbox", { name: /K05.1/ }).uncheck();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expectUnobscured(page.getByRole("button", { name: "Edit line 1", exact: true }));
   await expect(page.locator(".procedure-line").first()).toContainText("Tooth 16");
   await expect(page.locator(".procedure-line").first()).toContainText("K05.1");
   await page.getByRole("button", { name: "Edit line 1", exact: true }).click();
@@ -62,7 +71,7 @@ try {
   await expect(page.locator(".procedure-line").first()).not.toContainText("K05.1");
   await expect(page.locator(".procedure-line").nth(1)).toContainText("K05.1");
   await expect(page.locator(".procedure-line").nth(2)).toContainText("Dr. Sofia Navarro");
-  await expect(page.getByRole("button", { name: "Edit line 1", exact: true })).toBeFocused();
+  await expectUnobscured(page.getByRole("button", { name: "Edit line 1", exact: true }));
   // Later diagnoses are applied without restoring a deliberately excluded diagnosis.
   await page.getByRole("combobox", { name: "Search and add diagnosis" }).fill("Pulpitis");
   await page.getByRole("option", { name: /Pulpitis/ }).click();
