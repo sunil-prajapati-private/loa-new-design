@@ -15,6 +15,7 @@ export const MEMBERS = [
   { id: "demo-alina", name: "Alina Rivera", initials: "AR", card: "0000000000001001", dob: "1992-06-18", company: "Northstar Creative Co. (Demo)", plan: "Corporate Plus · Demo", expiry: "2027-12-31", status: "Active", dental: true, relationship: "Principal", extracted: ["26"], avatar: "#e5efff" },
   { id: "demo-daniel", citizenship: "Filipino", name: "Daniel Mercado", initials: "DM", card: "0000000000001002", dob: "1958-02-12", company: "Lighthouse Trading (Demo)", plan: "Corporate Premier · Demo", expiry: "2027-06-30", status: "Active", dental: true, relationship: "Dependent", extracted: ["18", "36"], avatar: "#e7f4ef" },
   { id: "demo-nico", name: "Nico Salcedo", initials: "NS", card: "0000000000001003", dob: "2001-09-08", company: "Pine Studio (Demo)", plan: "Medical Essentials · Demo", expiry: "2027-03-31", status: "Active", dental: false, relationship: "Principal", extracted: [], avatar: "#fff0dc" },
+  { id: "demo-maya", name: "Maya Rivera", initials: "MR", card: "0000000000001004", dob: "2018-04-10", company: "Northstar Creative Co. (Demo)", plan: "Family Dental · Demo", expiry: "2027-12-31", status: "Active", dental: true, relationship: "Dependent", extracted: ["65"], avatar: "#f4eaff" },
 ];
 export const TYPES = [{ code: "DENT", label: "Dental" }, { code: "OPCON", label: "Outpatient consultation" }, { code: "OLP", label: "OP Lab & Procedure" }, { code: "IP", label: "Inpatient" }, { code: "EMERG", label: "Emergency" }, { code: "PEME", label: "Pre-employment" }, { code: "ACU", label: "Annual checkup" }];
 export const DIAGNOSES = [
@@ -47,3 +48,7 @@ export const PROCEDURES = [
 ];
 export const QUADRANTS = [{ value: "UR", label: "Upper right" }, { value: "UL", label: "Upper left" }, { value: "LR", label: "Lower right" }, { value: "LL", label: "Lower left" }];
 export const TOOTH_ROWS = [[18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28], [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38]];
+export const TOOTH_CHARTS = {
+  permanent: { label: "Permanent teeth", rows: TOOTH_ROWS },
+  temporary: { label: "Temporary teeth", rows: [[55, 54, 53, 52, 51, 61, 62, 63, 64, 65], [85, 84, 83, 82, 81, 71, 72, 73, 74, 75]] },
+};

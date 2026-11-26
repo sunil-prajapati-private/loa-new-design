@@ -84,3 +84,167 @@ body{background:#f7f8fa!important}
 .claim-line-title{display:flex;gap:12px;align-items:center}.claim-line h3{font-size:16px}.claim-line p{font-size:13px;color:#667085;margin-top:6px}.claim-diagnosis{margin-bottom:20px}
 .claim-total,.claim-review-line{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 0;font-size:14px;border-top:1px solid #edf0f4}.claim-total strong{font-size:20px;color:#0053cc}
 @media(max-width:600px){.section-heading{padding:16px}.section-body{padding:18px 16px}.claim-search{grid-template-columns:1fr}.claim-facts{grid-template-columns:1fr 1fr;gap:16px}.claim-member-heading{flex-direction:column}.claim-line{padding:14px}.request-summary{padding:18px}.scenario-notes{padding:16px}.module-switch{margin-bottom:16px}.journey-nav{gap:14px}}
+
+/* LOA review: persistent section navigation and procedure editing in a dialog. */
+.loa-journey-nav ~ .form-layout .form-section{scroll-margin-top:48px}
+.loa-journey-nav{position:sticky;top:64px;z-index:1050;background:#fff;border:1px solid #e0e5ed;border-radius:8px;padding:12px 16px;box-shadow:0 3px 10px #22354b08;flex-wrap:nowrap;overflow-x:auto}
+.loa-journey-nav a{flex-shrink:0;min-height:28px}
+.requester-details{padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid #edf0f4}
+.requester-details h3{font-size:14px;font-weight:600;color:#435a76;margin-bottom:16px}
+.procedure-card{padding:18px;margin-bottom:14px;background:#fff;border:1px solid #dfe5ed;border-radius:8px}
+.procedure-card .line-summary{padding:0;align-items:flex-start}
+.line-actions{display:flex;align-items:center;flex-shrink:0;gap:2px;margin-left:auto}
+.line-facts{display:flex;flex-wrap:wrap;gap:10px 24px;padding:14px 0;font-size:13px;color:#545563}
+.line-facts strong{margin-left:5px;color:#313030}
+.line-diagnoses>span{display:block;font-size:12px;font-weight:600;color:#545563;margin-bottom:8px}
+.line-diagnoses .MuiChip-root{height:auto;max-width:100%;background:#f4f8fe;border-color:#dce8f9}
+.line-diagnoses .MuiChip-label{white-space:normal;line-height:1.6;padding:4px 10px}
+.line-role-summary,.line-deduction-summary{font-size:12px;color:#545563;line-height:1.7;margin-top:12px}
+.missing-diagnosis{font-size:13px;color:#ae2e24}
+.procedure-dialog .MuiDialog-paper{max-height:calc(100dvh - 48px);overflow:hidden}
+.procedure-dialog .MuiDialogTitle-root{padding:16px 24px}
+.procedure-dialog .MuiDialogContent-root{padding:20px 24px;min-height:0;overscroll-behavior:contain}
+.procedure-dialog .MuiDialogActions-root{padding:14px 24px;border-top:1px solid #edf0f4}
+.procedure-dialog .price-panel{margin:14px 0 16px;padding:12px 16px}
+.procedure-dialog .price-explanation p{font-size:12px}
+.procedure-dialog .anatomy-panel{margin-bottom:12px;padding:12px}
+.procedure-dialog .anatomy-title{margin-bottom:10px}
+.procedure-dialog .anatomy-title strong{font-size:14px}
+.applied-diagnoses{border:1px solid #dfe5ed;border-radius:8px;padding:12px 16px;margin:0 0 18px;min-width:0}
+.applied-diagnoses legend{font-size:14px;font-weight:600;padding:0 5px}
+.applied-diagnoses legend span{color:#ae2e24}
+.applied-diagnoses>p{font-size:12px;color:#545563;line-height:1.6;margin-bottom:6px}
+.diagnosis-checkboxes{display:grid;gap:2px}
+.diagnosis-checkboxes .MuiFormControlLabel-root{margin-right:0;align-items:flex-start}
+.diagnosis-checkboxes .MuiFormControlLabel-label{padding-top:7px;min-width:0}
+.diagnosis-checkboxes strong{font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.diagnosis-checkboxes small{display:block;font-size:12px;color:#657185}
+.line-validation{margin-bottom:20px}
+@media(max-width:600px){
+  .loa-journey-nav{top:60px;padding:9px 12px;gap:18px}
+  .loa-journey-nav a{font-size:12px}
+  .procedure-card{padding:14px}
+  .procedure-card .line-summary{gap:8px}
+  .line-actions{width:100%;justify-content:flex-end}
+  .line-facts{gap:8px 16px}
+  .procedure-dialog .MuiDialog-paper{margin:8px;width:calc(100% - 16px);max-height:calc(100dvh - 16px)}
+  .procedure-dialog .MuiDialogTitle-root{padding:12px 16px}
+  .procedure-dialog .MuiDialogContent-root{padding:18px 14px}
+  .procedure-dialog .MuiDialogActions-root{padding:12px 16px}
+  .procedure-dialog .price-panel{padding:12px}
+  .applied-diagnoses{padding:10px}
+  .procedure-dialog .dental-arch{gap:10px}
+}
+
+/* Compact saved procedures retain the editing controls and key clinical context. */
+.compact-procedure{padding:11px 14px;margin-bottom:8px}
+.compact-procedure .line-summary{gap:10px;align-items:center}
+.compact-procedure .line-number{width:25px;height:25px;font-size:11px}
+.compact-procedure .line-summary-text strong{font-size:14px}
+.compact-procedure .line-summary-text small{font-size:12px;margin-top:2px}
+.compact-procedure .line-actions .MuiButton-root{min-width:0;padding:3px 8px}
+.compact-procedure .line-actions .MuiIconButton-root{padding:6px}
+.compact-procedure .line-facts{padding:7px 0 5px;gap:4px 18px;font-size:12px}
+.compact-procedure .line-diagnoses{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.compact-procedure .line-diagnoses>span{margin:0;font-size:12px;font-weight:400}
+.compact-procedure .chip-row{gap:5px}
+.compact-procedure .MuiChip-label{font-size:11px;padding:1px 7px}
+.compact-procedure .line-role-summary,.compact-procedure .line-deduction-summary{font-size:12px;margin-top:5px;line-height:1.5}
+.compact-procedure .line-role-summary{display:flex;flex-wrap:wrap;gap:4px 16px}
+@media(max-width:600px){
+ .compact-procedure{padding:10px}
+ .compact-procedure .line-summary{gap:6px}
+ .compact-procedure .line-summary-text{min-width:0}
+ .compact-procedure .line-actions{width:auto;margin-left:31px;justify-content:flex-start}
+ .compact-procedure .line-facts{gap:4px 10px}
+}
+
+/* Request totals and itemized PHP deductions. */
+.summary-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.summary-heading h3{margin:0;font-size:16px}
+.detailed-summary .summary-context{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:18px 0;padding-bottom:18px}
+.detailed-summary .summary-context>div{margin:0;display:block}
+.summary-context dt{font-size:12px}
+.detailed-summary .summary-context dd{font-size:13px;text-align:left;margin-top:5px;overflow-wrap:anywhere}
+.summary-context small{display:block;font-size:12px;color:#657185;margin-top:3px}
+.summary-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.summary-totals>div{padding:14px 16px;border:1px solid #e0e5ed;background:#fafcff;border-radius:8px}
+.summary-totals span{display:block;font-size:12px;color:#545563}
+.summary-totals strong{display:block;font-size:22px;font-weight:600;margin-top:7px;color:#204b80}
+.deduction-breakdown{border-top:1px solid #e0e5ed;padding-top:16px}
+.deduction-breakdown h4{font-size:14px;color:#435a76;display:flex;justify-content:space-between}
+.deduction-breakdown h4 span{font-size:12px;font-weight:400}
+.deduction-breakdown dl{display:block!important;margin:8px 0 18px!important;padding:0!important;border:0!important}
+.deduction-breakdown dl>div{display:flex!important;flex-direction:row!important;justify-content:space-between;align-items:baseline;gap:18px;margin:0!important;padding:7px 0;font-size:13px!important}
+.deduction-breakdown dt{color:#545563}
+.deduction-breakdown dd{margin:0;color:#313030;font-variant-numeric:tabular-nums}
+.deduction-breakdown .deduction-total{border-top:1px solid #e0e5ed;margin-top:6px!important;padding-top:12px;font-weight:600}
+.summary-line-details{border-top:1px solid #e0e5ed;padding-top:16px;margin-top:18px}
+.summary-line-details>summary{font-size:14px;font-weight:600;cursor:pointer;color:#0053cc}
+.summary-line-details>summary>span{font-size:12px;font-weight:400;color:#657185;margin-left:10px}
+.summary-table-scroll{overflow-x:auto;margin-top:12px;max-width:100%}
+.summary-lines-table{border-collapse:collapse;width:100%;font-size:12px;text-align:left;min-width:660px}
+.summary-lines-table th,.summary-lines-table td{padding:10px 12px;border-bottom:1px solid #e0e5ed;vertical-align:top}
+.summary-lines-table thead th{font-size:11px;font-weight:600;background:#f4f7fb;color:#545563}
+.summary-lines-table tbody th{font-weight:400;width:46%}
+.summary-lines-table tbody th>strong{font-size:13px}
+.summary-lines-table td{text-align:right;font-variant-numeric:tabular-nums}
+.summary-lines-table small{display:block;color:#545563;font-size:11px;line-height:1.6;margin-top:4px}
+.request-summary .summary-disclaimer{font-size:12px;color:#657185;margin:16px 0}
+@media(max-width:850px){.detailed-summary .summary-context{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.summary-totals{grid-template-columns:1fr;gap:8px}.summary-totals>div{padding:12px}.summary-totals strong{font-size:20px}.summary-heading{align-items:flex-start}.detailed-summary .summary-context{grid-template-columns:1fr;gap:12px}.summary-line-details>summary>span{display:block;margin:6px 0 0}}
+.summary-totals{grid-template-columns:repeat(3,minmax(0,1fr))}
+.summary-totals .covered-total{background:#edf5ff;border-color:#bcd4f5}
+.covered-total small{display:block;font-size:11px;color:#545563;line-height:1.5;margin-top:7px}
+.dental-chart-selector{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e0e7f0}
+.dental-chart-selector>span{font-size:13px;font-weight:600;color:#41536c}
+.dental-chart-selector .MuiToggleButton-root{text-transform:none;font-size:12px;padding:6px 12px}
+.dental-chart.temporary{max-width:460px}
+.dental-chart.temporary .tooth-row{grid-template-columns:repeat(5,minmax(0,1fr))}
+.senior-eligibility{font-size:11px;line-height:1.5;margin:0 0 8px;color:#657185}
+.senior-eligibility.eligible{color:#216e4e}
+@media(max-width:600px){.summary-totals{grid-template-columns:1fr}.dental-chart-selector{gap:8px}.dental-chart-selector .MuiToggleButton-root{font-size:11px;padding:6px 10px}.dental-chart.temporary .tooth-row{max-width:220px}}
+
+/* Compact bottom summary; full request and line details expand on demand. */
+.request-summary.compact-summary{padding:16px 20px;scroll-margin-top:140px}
+.compact-summary .summary-heading{gap:8px}
+.compact-summary .summary-heading h3{font-size:14px}
+.amount-summary .summary-totals{gap:12px;margin:12px 0 5px}
+.amount-summary .summary-totals>div{padding:8px 12px;border:0;border-left:2px solid #e0e5ed;border-radius:0;background:transparent;min-width:0}
+.amount-summary .summary-totals strong{font-size:20px;margin-top:4px;overflow-wrap:anywhere}
+.amount-summary .summary-totals .covered-total{background:#edf5ff;border-left-color:#0053cc;border-radius:4px}
+.covered-formula{font-size:11px;color:#657185;margin:0 0 10px;line-height:1.5}
+.amount-summary .deduction-breakdown{padding-top:10px}
+.amount-summary .deduction-breakdown h4{font-size:11px;font-weight:500;color:#657185;margin:0 0 6px}
+.amount-summary .deduction-breakdown dl{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0!important}
+.amount-summary .deduction-breakdown dl>div{display:block!important;padding:0!important;min-width:0}
+.amount-summary .deduction-breakdown dt{font-size:11px;line-height:1.5}
+.amount-summary .deduction-breakdown dd{font-size:13px;font-weight:500;margin:2px 0 0;text-align:left;overflow-wrap:anywhere}
+.amount-summary .deduction-breakdown .deduction-total{border:0;border-left:1px solid #e0e5ed;padding-left:12px!important;margin:0!important}
+.amount-summary .deduction-total dt,.amount-summary .deduction-total dd{font-weight:600}
+.compact-summary .summary-line-details{padding-top:10px;margin-top:12px}
+.compact-summary .summary-line-details>summary{font-size:12px;min-height:28px;line-height:28px}
+.compact-summary .summary-context{margin:12px 0;padding:0 0 12px}
+.summary-footer{display:flex;justify-content:space-between;gap:8px 16px;align-items:center;flex-wrap:wrap;border-top:1px solid #edf0f5;padding-top:8px;margin-top:6px}
+.compact-summary .summary-footer .summary-disclaimer{font-size:11px;margin:0}
+.compact-summary .summary-check{border:0;padding:0;font-size:11px}
+@media(max-width:600px){
+ .request-summary.compact-summary{padding:14px}
+ .amount-summary .summary-totals{grid-template-columns:1fr;gap:3px;margin-top:10px}
+ .amount-summary .summary-totals>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px}
+ .amount-summary .summary-totals span{font-size:11px;flex:1}
+ .amount-summary .summary-totals strong{font-size:16px;margin:0;text-align:right;max-width:56%}
+ .covered-formula{font-size:10px;margin:6px 0 8px}
+ .amount-summary .deduction-breakdown dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
+ .amount-summary .deduction-breakdown .deduction-total{display:flex!important;justify-content:space-between;align-items:baseline;grid-column:1/-1;border-left:0;border-top:1px solid #edf0f5;padding:6px 0 0!important}
+ .compact-summary .summary-line-details>summary>span{display:inline;margin:0 0 0 5px;font-size:10px;white-space:nowrap}
+ .summary-footer{gap:4px}
+}
+
+/* The same automatic age-based chart is used in Add and Edit. */
+.automatic-dental-chart{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.automatic-dental-chart small{font-size:11px;color:#545563}
+.tooth.tooth-used:disabled{opacity:1;background:#fff5df;color:#a16e1d;border-color:#e8d4ac}
+.tooth.tooth-used:disabled span{text-decoration:none}
+.legend-used{background:#e8c17d}
+@media(max-width:600px){.automatic-dental-chart{gap:5px}.automatic-dental-chart small{font-size:10px}}

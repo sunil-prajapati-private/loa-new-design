@@ -1,0 +1,49 @@
+import { useRef, useState } from "react";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Alert, Autocomplete, Button, Checkbox, FormControlLabel, IconButton, InputAdornment, MenuItem, TextField } from "@mui/material";
+import { LockKeyhole, X } from "lucide-react";
+import { DOCTORS } from "../data.js";
+import { ageAtDate, alignDentalLine, dentitionFor, usedTeeth, amountFor, deductionOptions, seniorEligible, catalogFor, doctorSpecialty, lineErrors, money, procedureFor } from "../domain.js";
+import DentalSitePicker from "./DentalSitePicker.jsx";
+
+export default function ProcedureDialog({ initialLine, index, isNew, type, member, date, medicalClass, doctors, diagnoses, lines, onSave, onClose }) {
+  const [draft, setDraft] = useState(initialLine);
+  const line = alignDentalLine(draft, member, date);
+  const [showErrors, setShowErrors] = useState(false);
+  const errorSummary = useRef(null);
+  const procedure = procedureFor(line); const catalogue = catalogFor(line.doctorId, type);
+  const selectedDoctor = DOCTORS.find((doctor) => doctor.id === line.doctorId) ?? null;
+  const errors = lineErrors(line, type, member, { type, member, date, medicalClass, lines }); const amount = amountFor(line);
+  const update = (change) => setDraft((current) => ({ ...alignDentalLine(current, member, date), ...change }));
+  const selectProcedure = (selected) => { update({ code: selected?.code ?? "", site: "", modifier: "", charge: "", quantity: "1", stale: false, assistant: "", anesthetist: "", deductions: {} }); };
+  const rvs = procedure?.group === "RVS";
+  const availableDeductions = [...new Set(["Senior Citizen", ...deductionOptions(line, { type, member, date, medicalClass }), ...Object.keys(line.deductions)])];
+  const canUseSenior = seniorEligible({ member, date });
+  const memberAge = ageAtDate(member?.dob, date);
+  function save() {
+    setShowErrors(true);
+    if (errors.length) {
+      requestAnimationFrame(() => { errorSummary.current?.focus(); errorSummary.current?.scrollIntoView({ block: "nearest" }); });
+      return;
+    }
+    onSave(line);
+  }
+  return <Dialog open onClose={(_event, reason) => { if (reason !== "backdropClick") onClose(); }} maxWidth="md" fullWidth className="procedure-dialog" aria-labelledby="procedure-dialog-title">
+    <DialogTitle id="procedure-dialog-title"><div className="dialog-title"><span>{isNew ? "Add procedure line" : "Edit procedure line " + (index + 1)}</span><IconButton aria-label="Close procedure editor" onClick={onClose}><X size={20} /></IconButton></div></DialogTitle>
+    <DialogContent dividers>
+        {showErrors && errors.length > 0 && <div ref={errorSummary} tabIndex={-1} className="line-validation"><Alert severity="error"><ul className="error-list">{errors.map((error) => <li key={error}>{error}</li>)}</ul></Alert></div>}
+        <div className="field-grid two"><Autocomplete options={doctors} value={selectedDoctor} getOptionLabel={(doctor) => doctor.name} isOptionEqualToValue={(a, b) => a.id === b.id} onChange={(_event, doctor) => update({ doctorId: doctor?.id ?? "", stale: Boolean(line.code) })} renderOption={(props, doctor) => { const { key, ...rest } = props; return <li key={key} {...rest}><div><strong>{doctor.name}</strong><small className="option-subtitle">{doctor.specialty}</small></div></li>; }} renderInput={(params) => <TextField {...params} size="small" required label={rvs ? "Main doctor" : "Procedure doctor"} helperText={"Specialty: " + doctorSpecialty(line.doctorId)} />} />
+          <div><Autocomplete options={catalogue} disabled={!line.doctorId} value={procedure ?? null} getOptionLabel={(p) => p.code + " · " + p.name} isOptionEqualToValue={(a, b) => a.code === b.code} onChange={(_event, selected) => selectProcedure(selected)} renderInput={(params) => <TextField {...params} size="small" required label="Procedure code or description" />} renderOption={(props, p) => { const { key, ...rest } = props; return <li key={key} {...rest}><div><strong>{p.name}</strong><small className="option-subtitle">{p.code} · {p.pricing === "pac" ? "Price As Charged" : p.pricing === "conflict" ? "Pricing conflict" : money(p.cents)}</small></div></li>; }} /></div>
+        </div>
+        {line.stale && <Alert severity="warning" action={catalogue.some((p) => p.code === line.code) ? <Button color="inherit" size="small" onClick={() => update({ stale: false })}>Reconfirm</Button> : undefined}>Doctor or request context changed. Reconfirm an available procedure or choose a replacement; the old quote cannot be used.</Alert>}
+        {procedure && <>
+          <div className={"price-panel " + procedure.pricing}><div className="price-explanation"><span className={"pricing-tag " + procedure.pricing}>{procedure.pricing === "pac" ? "Price As Charged" : procedure.pricing === "conflict" ? "Pricing conflict" : "Fee schedule"}</span><p>{procedure.pricing === "pac" ? "Enter the total charge for this line. The amount is not multiplied by quantity." : procedure.pricing === "conflict" ? "The sample rate is unresolved. This line blocks review until replaced or removed." : "The sample allowed amount is calculated from this doctor’s fee schedule."}</p></div><div className="price-inputs"><TextField size="small" label="Quantity" value={line.quantity} onChange={(event) => update({ quantity: event.target.value })} inputProps={{ inputMode: "numeric", readOnly: type === "DENT", "aria-label": "Quantity for line " + (index + 1) }} />{procedure.pricing === "pac" ? <TextField size="small" required label="Total charged amount" value={line.charge} onChange={(event) => update({ charge: event.target.value })} placeholder="0.00" InputProps={{ startAdornment: <InputAdornment position="start">₱</InputAdornment> }} inputProps={{ inputMode: "decimal" }} /> : <TextField size="small" label="Allowed amount" value={amount === null ? "Unavailable" : money(amount)} InputProps={{ readOnly: true, endAdornment: <LockKeyhole size={15} /> }} />}</div></div>
+          <fieldset className="applied-diagnoses"><legend>Applied diagnoses <span>*</span></legend><p>All request diagnoses are selected by default. Uncheck any that do not apply to this procedure; keep at least one.</p><div className="diagnosis-checkboxes">{diagnoses.map((diagnosis) => <FormControlLabel key={diagnosis.code} control={<Checkbox size="small" checked={line.diagnoses.includes(diagnosis.code)} onChange={(_event, checked) => update({ diagnoses: checked ? [...line.diagnoses, diagnosis.code] : line.diagnoses.filter((code) => code !== diagnosis.code) })} />} label={<span><strong>{diagnosis.code} · {diagnosis.label}</strong><small>{diagnosis.rank}</small></span>} />)}</div></fieldset>
+          {type === "DENT" && <DentalSitePicker kind={procedure.site} value={line.site} dentition={dentitionFor(member, date)} memberAge={memberAge} takenTeeth={usedTeeth(lines, line.id)} onChange={(site) => update({ site })} extracted={member?.extracted ?? []} />}
+          {procedure.modifiers && <TextField size="small" select fullWidth required label="Modifier / laterality" value={line.modifier} sx={{ mt: 2 }} onChange={(event) => update({ modifier: event.target.value })}><MenuItem value="">Choose modifier</MenuItem>{procedure.modifiers.map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)}</TextField>}
+          {rvs && <div className="rvs-panel"><h4>Additional RVS doctors <span>Optional</span></h4><div className="field-grid two">{[["assistant", "Assistant doctor"], ["anesthetist", "Anesthetist"]].map(([key, label]) => <TextField size="small" select fullWidth key={key} label={label} value={line[key]} helperText={line[key] ? "Specialty: " + doctorSpecialty(line[key]) : "Optional doctor role"} onChange={(event) => update({ [key]: event.target.value })}><MenuItem value="">Not selected</MenuItem>{doctors.filter((d) => d.id !== line.doctorId).map((d) => <MenuItem key={d.id} value={d.id}>{d.name} · {d.specialty}</MenuItem>)}</TextField>)}</div><p className="field-note">The procedure doctor above is Main. Optional roles appear in the request summary.</p></div>}
+          <details className="deductions"><summary>Deductions <span>Optional · amounts per line</span></summary><div className="deduction-grid">{availableDeductions.map((name) => { const enabled = Object.hasOwn(line.deductions, name); return <div key={name}><FormControlLabel control={<Checkbox size="small" checked={enabled} disabled={name === "Senior Citizen" && !canUseSenior && !enabled} onChange={() => { const deductions = { ...line.deductions }; if (enabled) delete deductions[name]; else deductions[name] = ""; update({ deductions }); }} />} label={name} />{name === "Senior Citizen" && <p className={"senior-eligibility " + (canUseSenior ? "eligible" : "ineligible")}>{canUseSenior ? "Enabled automatically · age " + memberAge + " at availment" : memberAge === null ? "Find a member to check age eligibility." : "Available from age 60 · member age " + memberAge}{enabled && !canUseSenior ? ". Uncheck this ineligible deduction." : ""}</p>}{enabled && <TextField size="small" fullWidth label={name + " amount"} value={line.deductions[name]} onChange={(event) => update({ deductions: { ...line.deductions, [name]: event.target.value } })} InputProps={{ startAdornment: <InputAdornment position="start">₱</InputAdornment> }} inputProps={{ inputMode: "decimal" }} />}</div>; })}</div></details>
+        </>}
+    </DialogContent>
+    <DialogActions><Button onClick={onClose}>Cancel</Button><Button variant="contained" disableElevation onClick={save}>{isNew ? "Add procedure" : "Save changes"}</Button></DialogActions>
+  </Dialog>;
+}

@@ -1,8 +1,8 @@
 import { canEnterClaimAmount, claimAmount, claimErrors, claimSample } from '../src/claimDomain.js';
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deductionOptions, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
-import { MEMBERS, ORGANISATIONS } from "../src/data.js";
+import { ageAtDate, alignDentalLine, dentitionFor, duplicateLineError, usedTeeth, seniorEligible, siteLabel, deductionOptions, deductionTotal, requestAmounts, amountFor, catalogFor, dates, lineErrors, newLine, parseCents, requestErrors } from "../src/domain.js";
+import { MEMBERS, ORGANISATIONS, TOOTH_CHARTS } from "../src/data.js";
 const diagnoses = [{ code: "K02.9", rank: "Primary" }];
 test("Manila dates cross UTC midnight correctly", () => {
   assert.deepEqual(dates(new Date("2026-11-24T16:01:00Z")), ["2026-11-25", "2026-11-26", "2026-11-27"]);
@@ -41,38 +41,41 @@ test("RVS roles stay distinct and require a laterality modifier", () => {
   assert(errors.some((error) => error.includes("modifier")));
 });
 test("Organisation Dental access and member benefit are independent", () => {
-  const form = { org: ORGANISATIONS[1], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[2], lines: [newLine("d1", diagnoses, { code: "DEMO-D01" })], files: [], complaint: "" };
+  const form = { requesterName: "Jamie Cruz", department: "Patient services", org: ORGANISATIONS[1], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[2], lines: [newLine("d1", diagnoses, { code: "DEMO-D01" })], files: [], complaint: "" };
   const errors = requestErrors(form);
   assert(errors.some((error) => error.includes("organisation")));
   assert(errors.some((error) => error.includes("no Dental benefit")));
 });
 test("Repeated procedures are allowed on different teeth but not the same site", () => {
   const line = newLine("d1", diagnoses, { code: "DEMO-D03", site: "16" });
-  const form = { org: ORGANISATIONS[0], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[0], lines: [line, { ...line, id: "second", site: "17" }], files: [], complaint: "" };
+  const form = { requesterName: "Jamie Cruz", department: "Patient services", org: ORGANISATIONS[0], type: "DENT", attending: "d1", date: dates()[0], diagnoses, member: MEMBERS[0], lines: [line, { ...line, id: "second", site: "17" }], files: [], complaint: "" };
   assert.deepEqual(requestErrors(form), []);
   assert(requestErrors({ ...form, lines: [line, { ...line, id: "second" }] }).some((error) => error.includes("Duplicate")));
 });
 
-test('OP Lab PhilHealth depends on class or this line, not another RVS line', () => {
-  const context = { type: 'OLP', medicalClass: 'MEDICAL', date: '2026-11-24' };
-  assert.equal(deductionOptions({ code: 'DEMO-M01' }, context).includes('PhilHealth'), false);
-  assert.equal(deductionOptions({ code: 'DEMO-R01' }, context).includes('PhilHealth'), true);
-  assert.equal(deductionOptions({ code: 'DEMO-M01' }, { ...context, medicalClass: 'SURGICAL' }).includes('PhilHealth'), true);
-  assert.equal(deductionOptions({ code: 'DEMO-D01' }, { ...context, type: 'DENT' }).includes('PhilHealth'), false);
+test('PhilHealth is available on every Dental, OP Lab, IP and ER line', () => {
+  for (const type of ['DENT', 'OLP', 'IP', 'EMERG']) {
+    for (const medicalClass of ['MEDICAL', 'SURGICAL']) {
+      assert(deductionOptions({ code: 'DEMO-M01' }, { type, medicalClass }).includes('PhilHealth'));
+    }
+  }
+  for (const type of ['OPCON', 'ACU', 'PEME']) assert(!deductionOptions({}, { type }).includes('PhilHealth'));
 });
 
-test('Senior Citizen requires age at availment, citizenship and an eligible LOA type', () => {
-  const context = { type: 'OLP', date: '2026-11-24', member: { dob: '1966-11-25', citizenship: 'Filipino' } };
-  const line = { code: 'DEMO-M01' };
-  assert.equal(deductionOptions(line, context).includes('Senior Citizen'), false);
-  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25' }).includes('Senior Citizen'), true);
-  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25', member: { dob: '1966-11-25' } }).includes('Senior Citizen'), false);
-  assert.equal(deductionOptions(line, { ...context, date: '2026-11-25', type: 'DENT' }).includes('Senior Citizen'), false);
+test('Senior Citizen enables from the 60th birthday for every LOA type regardless of citizenship', () => {
+  const member = { dob: '1966-11-25' };
+  for (const type of ['DENT', 'OPCON', 'OLP', 'IP', 'EMERG', 'ACU', 'PEME']) {
+    assert.equal(deductionOptions({}, { type, member, date: '2026-11-24' }).includes('Senior Citizen'), false);
+    assert.equal(deductionOptions({}, { type, member, date: '2026-11-25' }).includes('Senior Citizen'), true);
+  }
+  assert.equal(seniorEligible({ member: { ...member, citizenship: 'Other' }, date: '2026-11-25' }), true);
+  assert.equal(seniorEligible({ date: '2026-11-25' }), false);
+  assert.equal(ageAtDate('2030-01-01', '2026-11-25'), null);
 });
 
 test('Previously entered deductions cannot pass review after eligibility changes', () => {
   const line = newLine('m1', diagnoses, { code: 'DEMO-M01', deductions: { PhilHealth: '100' } });
-  assert(lineErrors(line, 'OLP', MEMBERS[0], { type: 'OLP', medicalClass: 'MEDICAL', member: MEMBERS[0], date: '2026-11-24' }).some(message => message.includes('Remove PhilHealth')));
+  assert(lineErrors(line, 'OLP', MEMBERS[0], { type: 'OPCON', medicalClass: 'MEDICAL', member: MEMBERS[0], date: '2026-11-24' }).some(message => message.includes('Remove PhilHealth')));
 });
 
 test('Claim amount entry distinguishes missing source from an existing zero', () => {
@@ -89,4 +92,109 @@ test('Claim review requires service date, amounts and documents and blocks zero-
   assert.deepEqual(claimErrors(claim,claim.date,[{}]),[]);
   assert(claimErrors(claimSample('blocked'),claim.date,[{}]).some(x=>x.includes('Manual adjudication')));
   assert(claimErrors({...claim,eligible:false},claim.date,[{}]).some(x=>x.includes('unavailable')));
+});
+
+
+test('Requester name and department are mandatory; contacts remain optional', () => {
+  const form = { org: ORGANISATIONS[0], type: 'DENT', attending: 'd1', date: dates()[0], diagnoses, member: MEMBERS[0], lines: [newLine('d1', diagnoses, { code: 'DEMO-D01' })], files: [], complaint: '' };
+  assert.deepEqual(requestErrors(form), ['Enter the LOA requester name.', 'Enter the requester department.']);
+  assert.deepEqual(requestErrors({ ...form, requesterName: 'Jamie', department: 'Patient services' }), []);
+  assert(requestErrors({ ...form, requesterName: '  ', department: 'Patient services' }).includes('Enter the LOA requester name.'));
+});
+
+test('PAC requires meaningful remarks without affecting scheduled-only requests', () => {
+  const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[1], type: 'OLP', attending: 'm1', date: dates()[0], diagnoses, member: MEMBERS[0], lines: [newLine('m1', diagnoses, { code: 'DEMO-M05', charge: '1200' })], files: [{}], complaint: '' };
+  assert(requestErrors({ ...form, remarks: '  ' }).some(message => message.includes('Enter remarks')));
+  assert.deepEqual(requestErrors({ ...form, remarks: 'Additional laboratory charge' }), []);
+  assert.deepEqual(requestErrors({ ...form, lines: [newLine('m1', diagnoses, { code: 'DEMO-M01' })] }), []);
+});
+
+
+test('Request summary keeps agreed CPT amounts, PAC charges and itemized deductions separate', () => {
+  const lines = [
+    newLine('m1', diagnoses, { code: 'DEMO-M01', quantity: '2', deductions: { PhilHealth: '100.25', 'PWD discount': '20.50' } }),
+    newLine('m1', diagnoses, { code: 'DEMO-M05', charge: '2000.75', deductions: { PhilHealth: '50', 'Other discount': '10.10' } }),
+  ];
+  const summary = requestAmounts(lines);
+  assert.equal(summary.scheduled, 90000);
+  assert.equal(summary.charged, 200075);
+  assert.equal(summary.deductions.PhilHealth, 15025);
+  assert.equal(summary.deductions['Senior Citizen'], 0);
+  assert.equal(summary.totalDeductions, 18085);
+  assert.equal(summary.covered, 71915);
+  assert.equal(deductionTotal(lines[0]), 12075);
+});
+
+test('Incomplete charges or deductions stay pending instead of displaying partial totals', () => {
+  const stale = newLine('m1', diagnoses, { code: 'DEMO-M01', stale: true });
+  const pending = newLine('m1', diagnoses, { code: 'DEMO-M05', charge: '', deductions: { PhilHealth: '' } });
+  const summary = requestAmounts([stale, pending]);
+  assert.equal(summary.scheduled, null);
+  assert.equal(summary.charged, null);
+  assert.equal(summary.deductions.PhilHealth, null);
+  assert.equal(summary.totalDeductions, null);
+  assert.equal(summary.covered, null);
+  assert.equal(deductionTotal(pending), null);
+});
+
+
+test('Permanent and temporary teeth have distinct quadrants and validate against their chart', () => {
+  assert.equal(TOOTH_CHARTS.permanent.rows.flat().length, 32);
+  assert.equal(TOOTH_CHARTS.temporary.rows.flat().length, 20);
+  const temporary = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'temporary', site: '55' });
+  assert.deepEqual(lineErrors(temporary, 'DENT', MEMBERS[3]), []);
+  assert.equal(siteLabel(temporary), 'Tooth 55 · Temporary teeth');
+  assert(lineErrors({ ...temporary, site: '16' }, 'DENT', MEMBERS[3]).some(message => message.includes('selected dental chart')));
+  assert(lineErrors({ ...temporary, dentition: 'permanent' }, 'DENT', MEMBERS[3]).some(message => message.includes('selected dental chart')));
+  assert.equal(siteLabel(newLine('d1', diagnoses, { code: 'DEMO-D06', dentition: 'temporary', site: 'UR' })), 'Quadrant UR · Temporary teeth');
+});
+
+test('A retained Senior Citizen deduction cannot pass after switching to a younger member', () => {
+  const line = newLine('d1', diagnoses, { code: 'DEMO-D01', deductions: { 'Senior Citizen': '80' } });
+  const context = { type: 'DENT', member: MEMBERS[0], date: dates()[0] };
+  assert(lineErrors(line, 'DENT', MEMBERS[0], context).some(message => message.includes('Remove Senior Citizen')));
+});
+
+test('Covered amount follows the confirmed subtraction without silently clamping excess deductions', () => {
+  const line = newLine('m1', diagnoses, { code: 'DEMO-M01', deductions: { PhilHealth: '500' } });
+  assert.equal(requestAmounts([line]).covered, -5000);
+  assert.deepEqual(requestAmounts([]), { scheduled: 0, charged: 0, deductions: { PhilHealth: 0, 'Senior Citizen': 0, 'PWD discount': 0, 'Other discount': 0 }, totalDeductions: 0, covered: 0 });
+});
+
+
+test('The demo dental chart switches on the 12th birthday at availment', () => {
+  const member = { ...MEMBERS[3], dob: '2014-11-27' };
+  assert.equal(dentitionFor(member, '2026-11-26'), 'temporary');
+  assert.equal(dentitionFor(member, '2026-11-27'), 'permanent');
+  assert.equal(dentitionFor(null, '2026-11-27'), null);
+  const line = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'temporary', site: '55' });
+  assert.deepEqual(alignDentalLine(line, member, '2026-11-26'), line);
+  const changed = alignDentalLine(line, member, '2026-11-27');
+  assert.equal(changed.dentition, 'permanent');
+  assert.equal(changed.site, '');
+  assert.equal(changed.stale, true);
+  assert(lineErrors(line, 'DENT', member, { date: '2026-11-27' }).some(message => message.includes("member's age")));
+});
+
+test('A tooth cannot be reused across different procedures or doctors in one request', () => {
+  const first = newLine('d1', diagnoses, { code: 'DEMO-D03', site: '16' });
+  const second = newLine('d2', diagnoses, { code: 'DEMO-D07', site: '16' });
+  const form = { requesterName: 'Jamie', department: 'Patient services', org: ORGANISATIONS[0], type: 'DENT', attending: 'd1', date: dates()[0], diagnoses, member: MEMBERS[0], lines: [first, second], files: [], complaint: '' };
+  assert.match(duplicateLineError(second, form.lines), /Tooth 16 is already used/);
+  assert(requestErrors(form).some(message => message.includes('Duplicate tooth')));
+  assert.deepEqual(usedTeeth(form.lines, second.id), ['16']);
+  assert.deepEqual(lineErrors(first, 'DENT', MEMBERS[0], { ...form, lines: [first] }), []);
+  assert.equal(duplicateLineError(second, [second]), null);
+  assert.equal(duplicateLineError({ ...second, site: '17' }, form.lines), null);
+});
+
+test('A member change replaces the chart and clears an incompatible saved tooth', () => {
+  const first = newLine('d1', diagnoses, { code: 'DEMO-D03', site: '16' });
+  const childLine = alignDentalLine(first, MEMBERS[3], dates()[0]);
+  assert.equal(childLine.dentition, 'temporary');
+  assert.equal(childLine.site, '');
+  assert.equal(childLine.stale, true);
+  const quadrant = newLine('d1', diagnoses, { code: 'DEMO-D06', site: 'UR' });
+  assert.equal(alignDentalLine(quadrant, MEMBERS[3], dates()[0]).site, 'UR');
+  assert.deepEqual(usedTeeth([quadrant], 'another-line'), []);
 });

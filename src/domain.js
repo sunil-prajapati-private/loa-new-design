@@ -1,7 +1,36 @@
-import { DOCTORS, PROCEDURES } from "./data.js";
+import { DOCTORS, PROCEDURES, QUADRANTS, TOOTH_CHARTS } from "./data.js";
 export const money = (cents) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(cents / 100);
 export const doctorName = (id) => DOCTORS.find((doctor) => doctor.id === id)?.name ?? "Choose doctor";
+export const doctorSpecialty = (id) => DOCTORS.find((doctor) => doctor.id === id)?.specialty ?? "Select a doctor to view specialty";
 export const procedureFor = (line) => PROCEDURES.find((procedure) => procedure.code === line.code);
+export const toothChartFor = (line) => TOOTH_CHARTS[line.dentition ?? "permanent"];
+export const siteLabel = (line) => !line.site ? "" : (procedureFor(line)?.site === "tooth" ? "Tooth " : "Quadrant ") + line.site + " · " + (toothChartFor(line)?.label ?? "Choose dental chart");
+export function ageAtDate(dob, date) {
+  if (!dob || !date || dob > date) return null;
+  const age = Number(date.slice(0, 4)) - Number(dob.slice(0, 4)) - (date.slice(5) < dob.slice(5) ? 1 : 0);
+  return Number.isFinite(age) ? age : null;
+}
+export const seniorEligible = ({ member, date }) => (ageAtDate(member?.dob, date) ?? -1) >= 60;
+// Demo assumption for review point 7; not an approved clinical or business rule.
+export const PERMANENT_TEETH_AGE = 12;
+export function dentitionFor(member, date) {
+  const age = ageAtDate(member?.dob, date);
+  return age === null ? null : age < PERMANENT_TEETH_AGE ? "temporary" : "permanent";
+}
+export function alignDentalLine(line, member, date) {
+  const dentition = dentitionFor(member, date);
+  if (!dentition) return line;
+  const invalidTooth = Boolean(line.site && procedureFor(line)?.site === "tooth" && !TOOTH_CHARTS[dentition].rows.flat().map(String).includes(line.site));
+  return { ...line, dentition, site: invalidTooth ? "" : line.site, stale: line.stale || invalidTooth };
+}
+export function usedTeeth(lines, editingId) {
+  return lines.filter((line) => line.id !== editingId && procedureFor(line)?.site === "tooth" && line.site).map((line) => line.site);
+}
+export function duplicateLineError(line, lines) {
+  if (line.site && procedureFor(line)?.site === "tooth" && usedTeeth(lines, line.id).includes(line.site)) return "Duplicate tooth: Tooth " + line.site + " is already used by another procedure. Select a different tooth.";
+  if (line.code && lines.some((other) => other.id !== line.id && other.code === line.code && other.site === line.site)) return "Duplicate procedure and site: select a different site or remove the duplicate.";
+  return null;
+}
 export function dates(now = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
   const value = (type) => parts.find((part) => part.type === type).value;
@@ -16,7 +45,7 @@ export function parseCents(value) {
 }
 export const catalogFor = (doctorId, type) => PROCEDURES.filter((procedure) => procedure.doctors.includes(doctorId) && procedure.types.includes(type));
 export function newLine(doctorId, diagnoses, seed = {}) {
-  return { id: crypto.randomUUID(), doctorId, code: "", site: "", modifier: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
+  return { id: crypto.randomUUID(), doctorId, code: "", site: "", dentition: "permanent", modifier: "", quantity: "1", charge: "", diagnoses: diagnoses.map((d) => d.code), assistant: "", anesthetist: "", stale: false, deductions: {}, ...seed };
 }
 export function amountFor(line) {
   const procedure = procedureFor(line);
@@ -25,11 +54,23 @@ export function amountFor(line) {
   if (!/^\d{1,2}$/.test(line.quantity) || Number(line.quantity) < 1) return null;
   return (procedure.cents + (line.doctorId === "d2" ? 10000 : 0)) * Number(line.quantity || 0);
 }
-export function deductionOptions(line, { type, member, date, medicalClass }) {
+export const DEDUCTION_NAMES = ["PhilHealth", "Senior Citizen", "PWD discount", "Other discount"];
+export function deductionTotal(line) {
+  const amounts = Object.values(line.deductions).map(parseCents);
+  return amounts.some((amount) => amount === null) ? null : amounts.reduce((sum, amount) => sum + amount, 0);
+}
+const sumAmounts = (values) => values.some((amount) => amount === null) ? null : values.reduce((sum, amount) => sum + amount, 0);
+export function requestAmounts(lines) {
+  const deductions = Object.fromEntries([...new Set([...DEDUCTION_NAMES, ...lines.flatMap((line) => Object.keys(line.deductions))])].map((name) => [name, sumAmounts(lines.filter((line) => Object.hasOwn(line.deductions, name)).map((line) => parseCents(line.deductions[name])))]));
+  const scheduled = sumAmounts(lines.filter((line) => procedureFor(line)?.pricing !== "pac").map(amountFor));
+  const charged = sumAmounts(lines.filter((line) => procedureFor(line)?.pricing === "pac").map(amountFor));
+  const totalDeductions = sumAmounts(Object.values(deductions));
+  return { scheduled, charged, deductions, totalDeductions, covered: scheduled === null || totalDeductions === null ? null : scheduled - totalDeductions };
+}
+export function deductionOptions(_line, { type, member, date }) {
   const options = [];
-  if (["IP", "EMERG"].includes(type) || (type === "OLP" && (medicalClass === "SURGICAL" || procedureFor(line)?.group === "RVS"))) options.push("PhilHealth");
-  const age = member?.dob && date ? Number(date.slice(0, 4)) - Number(member.dob.slice(0, 4)) - (date.slice(5) < member.dob.slice(5) ? 1 : 0) : 0;
-  if (["IP", "EMERG", "OLP"].includes(type) && age >= 60 && member?.citizenship === "Filipino") options.push("Senior Citizen");
+  if (["DENT", "IP", "EMERG", "OLP"].includes(type)) options.push("PhilHealth");
+  if (seniorEligible({ member, date })) options.push("Senior Citizen");
   return [...options, "PWD discount", "Other discount"];
 }
 export function lineErrors(line, type, member, context) {
@@ -38,10 +79,21 @@ export function lineErrors(line, type, member, context) {
   if (!line.doctorId) errors.push("Select a procedure doctor.");
   if (!procedure) return [...errors, "Select a procedure."];
   if (!catalogFor(line.doctorId, type).some((entry) => entry.code === line.code)) errors.push("This procedure is unavailable for the selected doctor and LOA type.");
+  if (context?.lines) {
+    const duplicate = duplicateLineError(line, context.lines);
+    if (duplicate) errors.push(duplicate);
+  }
   if (line.stale) errors.push("Reconfirm this procedure after changing the doctor or request context.");
   if (!line.diagnoses.length) errors.push("Keep at least one diagnosis on this line.");
   if (procedure.site !== "none" && !line.site) errors.push("Select one " + procedure.site + ".");
-  if (procedure.site === "tooth" && member?.extracted.includes(line.site)) errors.push("This tooth is marked as previously extracted in the demo history.");
+  if (type === "DENT" && procedure.site !== "none") {
+    const expectedChart = dentitionFor(member, context?.date ?? dates()[0]);
+    if (!expectedChart) errors.push("Verify the member and availment date before selecting a dental site.");
+    else if ((line.dentition ?? "permanent") !== expectedChart) errors.push("The dental chart must match the member's age at availment.");
+  }
+  if (procedure.site === "tooth" && line.site && !toothChartFor(line)?.rows.flat().map(String).includes(line.site)) errors.push("Select a tooth from the selected dental chart.");
+  if (procedure.site === "quadrant" && line.site && !QUADRANTS.some((quadrant) => quadrant.value === line.site)) errors.push("Select a valid dental quadrant.");
+  if (procedure.site === "tooth" && member?.extracted?.includes(line.site)) errors.push("This tooth is marked as previously extracted in the demo history.");
   if (procedure.modifiers?.length && !procedure.modifiers.includes(line.modifier)) errors.push("Select an applicable modifier.");
   if (!/^\d{1,2}$/.test(line.quantity) || Number(line.quantity) < 1) errors.push("Quantity must be a whole number from 1 to 99.");
   if (type === "DENT" && line.quantity !== "1") errors.push("Use one Dental service per line in this demo.");
@@ -54,6 +106,9 @@ export function lineErrors(line, type, member, context) {
 }
 export function requestErrors(state) {
   const result = [];
+  if (!state.requesterName?.trim()) result.push("Enter the LOA requester name.");
+  if (!state.department?.trim()) result.push("Enter the requester department.");
+  if (state.type === "OPCON" && !state.consultationType) result.push("Select a consultation type.");
   if (state.type === "DENT" && !state.org.dental) result.push("Dental is unavailable for this organisation.");
   if (!state.attending) result.push("Select a requesting / attending doctor.");
   if (!state.member) result.push("Find a member using the sample card number and date of birth.");
@@ -62,9 +117,8 @@ export function requestErrors(state) {
   if (!state.diagnoses.length) result.push("Add at least one diagnosis before procedures.");
   if (["IP", "EMERG", "OPCON"].includes(state.type) && !state.complaint.trim()) result.push("Enter a chief complaint.");
   if (!state.lines.length) result.push("Add at least one procedure line.");
+  if (state.lines.some((line) => procedureFor(line)?.pricing === "pac") && !state.remarks?.trim()) result.push("Enter remarks for the Price As Charged procedure(s).");
   state.lines.forEach((line, index) => lineErrors(line, state.type, state.member, state).forEach((message) => result.push("Line " + (index + 1) + ": " + message)));
-  const keys = state.lines.filter((line) => line.code).map((line) => line.code + "|" + line.site);
-  if (new Set(keys).size !== keys.length) result.push("Duplicate procedure and site: select a different tooth/site or remove the duplicate.");
   if (["IP", "OLP"].includes(state.type) && !state.files.length) result.push("Add a supporting document; the sample document button works without uploading a file.");
   return result;
 }
