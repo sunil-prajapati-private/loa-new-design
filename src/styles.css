@@ -164,11 +164,7 @@ body{background:#f7f8fa!important}
 /* Request totals and itemized PHP deductions. */
 .summary-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .summary-heading h3{margin:0;font-size:16px}
-.detailed-summary .summary-context{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:18px 0;padding-bottom:18px}
-.detailed-summary .summary-context>div{margin:0;display:block}
-.summary-context dt{font-size:12px}
-.detailed-summary .summary-context dd{font-size:13px;text-align:left;margin-top:5px;overflow-wrap:anywhere}
-.summary-context small{display:block;font-size:12px;color:#657185;margin-top:3px}
+
 .summary-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
 .summary-totals>div{padding:14px 16px;border:1px solid #e0e5ed;background:#fafcff;border-radius:8px}
 .summary-totals span{display:block;font-size:12px;color:#545563}
@@ -181,9 +177,7 @@ body{background:#f7f8fa!important}
 .deduction-breakdown dt{color:#545563}
 .deduction-breakdown dd{margin:0;color:#313030;font-variant-numeric:tabular-nums}
 .deduction-breakdown .deduction-total{border-top:1px solid #e0e5ed;margin-top:6px!important;padding-top:12px;font-weight:600}
-.summary-line-details{border-top:1px solid #e0e5ed;padding-top:16px;margin-top:18px}
-.summary-line-details>summary{font-size:14px;font-weight:600;cursor:pointer;color:#0053cc}
-.summary-line-details>summary>span{font-size:12px;font-weight:400;color:#657185;margin-left:10px}
+
 .summary-table-scroll{overflow-x:auto;margin-top:12px;max-width:100%}
 .summary-lines-table{border-collapse:collapse;width:100%;font-size:12px;text-align:left;min-width:660px}
 .summary-lines-table th,.summary-lines-table td{padding:10px 12px;border-bottom:1px solid #e0e5ed;vertical-align:top}
@@ -193,8 +187,8 @@ body{background:#f7f8fa!important}
 .summary-lines-table td{text-align:right;font-variant-numeric:tabular-nums}
 .summary-lines-table small{display:block;color:#545563;font-size:11px;line-height:1.6;margin-top:4px}
 .request-summary .summary-disclaimer{font-size:12px;color:#657185;margin:16px 0}
-@media(max-width:850px){.detailed-summary .summary-context{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.summary-totals{grid-template-columns:1fr;gap:8px}.summary-totals>div{padding:12px}.summary-totals strong{font-size:20px}.summary-heading{align-items:flex-start}.detailed-summary .summary-context{grid-template-columns:1fr;gap:12px}.summary-line-details>summary>span{display:block;margin:6px 0 0}}
+
+@media(max-width:600px){.summary-totals{grid-template-columns:1fr;gap:8px}.summary-totals>div{padding:12px}.summary-totals strong{font-size:20px}.summary-heading{align-items:flex-start}}
 .summary-totals{grid-template-columns:repeat(3,minmax(0,1fr))}
 .summary-totals .loa-total{background:#edf5ff;border-color:#bcd4f5}
 .loa-total small{display:block;font-size:11px;color:#545563;line-height:1.5;margin-top:7px}
@@ -207,7 +201,7 @@ body{background:#f7f8fa!important}
 .senior-eligibility.eligible{color:#216e4e}
 @media(max-width:600px){.summary-totals{grid-template-columns:1fr}.dental-chart-selector{gap:8px}.dental-chart-selector .MuiToggleButton-root{font-size:11px;padding:6px 10px}.dental-chart.temporary .tooth-row{max-width:220px}}
 
-/* Compact bottom summary; full request and line details expand on demand. */
+/* Compact bottom summary with totals and PHP deductions. */
 .request-summary.compact-summary{padding:16px 20px;scroll-margin-top:8px}
 .compact-summary .summary-heading{gap:8px}
 .compact-summary .summary-heading h3{font-size:14px}
@@ -224,9 +218,7 @@ body{background:#f7f8fa!important}
 .amount-summary .deduction-breakdown dd{font-size:13px;font-weight:500;margin:2px 0 0;text-align:left;overflow-wrap:anywhere}
 .amount-summary .deduction-breakdown .deduction-total{border:0;border-left:1px solid #e0e5ed;padding-left:12px!important;margin:0!important}
 .amount-summary .deduction-total dt,.amount-summary .deduction-total dd{font-weight:600}
-.compact-summary .summary-line-details{padding-top:10px;margin-top:12px}
-.compact-summary .summary-line-details>summary{font-size:12px;min-height:28px;line-height:28px}
-.compact-summary .summary-context{margin:12px 0;padding:0 0 12px}
+
 .summary-footer{display:flex;justify-content:space-between;gap:8px 16px;align-items:center;flex-wrap:wrap;border-top:1px solid #edf0f5;padding-top:8px;margin-top:6px}
 .compact-summary .summary-footer .summary-disclaimer{font-size:11px;margin:0}
 .compact-summary .summary-check{border:0;padding:0;font-size:11px}
@@ -239,7 +231,7 @@ body{background:#f7f8fa!important}
  .loa-formula{font-size:10px;margin:6px 0 8px}
  .amount-summary .deduction-breakdown dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
  .amount-summary .deduction-breakdown .deduction-total{display:flex!important;justify-content:space-between;align-items:baseline;grid-column:1/-1;border-left:0;border-top:1px solid #edf0f5;padding:6px 0 0!important}
- .compact-summary .summary-line-details>summary>span{display:inline;margin:0 0 0 5px;font-size:10px;white-space:nowrap}
+
  .summary-footer{gap:4px}
 }
 

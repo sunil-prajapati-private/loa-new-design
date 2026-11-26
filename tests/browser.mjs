@@ -159,10 +159,6 @@ try {
   await expect(summary.locator(".deduction-total dd")).toHaveText("₱100.00");
   await expect(summary.locator(".summary-totals")).toContainText("₱4,650.00");
   await expect(summary.locator(".loa-total")).toContainText("₱4,550.00");
-  await summary.locator(".summary-line-details > summary").click();
-  await expect(summary.locator(".summary-context")).toContainText("Others");
-  await expect(summary.locator(".summary-lines-table tbody tr")).toHaveCount(4);
-  await expect(summary.locator(".summary-lines-table tbody tr").nth(1)).toContainText("PhilHealth: ₱100.00");
   await summary.scrollIntoViewIfNeeded();
   await page.screenshot({ animations: "disabled", path: "test-results/desktop-request-summary.png" });
   await page.getByRole("button", { name: "Review request", exact: true }).click();

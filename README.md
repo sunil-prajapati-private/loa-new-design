@@ -166,3 +166,5 @@ Unresolved items are OHI Internal Remarks/history integration (1/6), business co
 Coverage: domain tests and browser journeys include blank-draft Z71.1 seeding, replacement, context changes, consultation-specific catalogue filtering, ER procedures/room/PhilHealth/PAC, selected-option filtering, four diagnosis ranks, and the 26-point checklist, alongside the existing Dental, room, contact, popup and claim journeys.
 
 Quadrant follow-up: Permanent / Temporary selection now appears only for individual-tooth procedures. Add and Edit show four quadrant choices directly for quadrant procedures, with no dentition label or requirement in the picker, cards, summary or review. Tooth charts and age defaults are unchanged.
+
+LOA summary follow-up: removed the entire **Request & procedure details** disclosure from the bottom summary. It now shows agreed CPT, estimated additional charges, Total LOA Amount, the calculation and the PHP deduction breakdown. Full clinical/request details remain in the procedure cards and final review dialog.

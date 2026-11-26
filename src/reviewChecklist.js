@@ -22,7 +22,7 @@ export const REVIEW_CHECKLIST = [
   [19, "Provider rates / UAT loading", "Business / UAT verification pending", "All demo prices are fictional. The review’s 15 December target is recorded, not independently confirmed."],
   [20, "PAC requires remarks", "Demo complete", "Blank or whitespace-only remarks block review whenever a Price As Charged line exists."],
   [21, "Hide selected diagnoses", "Demo complete", "Selected diagnoses disappear from the search options and return when removed."],
-  [22, "Compact dental fields", "Demo complete", "Compact cards and charts; the bottom summary expands for full details. Add/Edit share a popup with fixed actions."],
+  [22, "Compact dental fields", "Demo complete", "Compact cards and charts; the bottom summary shows the calculation, totals and PHP deductions. Add/Edit share a popup with fixed actions."],
   [23, "Selected values and quantity", "Demo complete", "Procedure, quantity, amount and applied diagnoses appear above the tooth chart. Quantity defaults to 1; each line can uncheck diagnoses. No duplicate fee panel below the chart."],
   [24, "Total LOA Amount label", "Demo complete", "The bottom request summary and review dialog both use Total LOA Amount."],
   [25, "Initial consultation Z71.1", "Demo complete", "Initial consultation seeds Z71.1 when the diagnosis list is empty and applies it to the procedure. Clinical selections are preserved; the default can be replaced. Try Initial consultation."],
