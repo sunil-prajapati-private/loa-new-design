@@ -99,6 +99,13 @@ export async function verifyReviewUpdates(page) {
 
   await page.getByRole("tab", { name: "Dental & tooth selection", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alina Rivera" })).toBeVisible();
+  await page.getByRole("button", { name: "Add procedure line", exact: true }).click();
+  await procedureSearch.fill("Periodontal treatment");
+  await page.getByRole("option", { name: /Periodontal treatment/ }).click();
+  await expect(page.getByRole("group", { name: "Dental quadrant", exact: true }).getByRole("button")).toHaveCount(4);
+  await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
   for (const code of ["K05.1", "K04.0", "K08.9"]) {
     await dxSearch.fill(code);
     await page.getByRole("option", { name: new RegExp(code.replace('.', '\\.')) }).click();

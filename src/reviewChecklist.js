@@ -7,7 +7,7 @@ export const REVIEW_CHECKLIST = [
   [4, "Today label", "Demo complete", "Today is shown only for IP, OP Lab, OP consultation and Dental. Tomorrow is not a label. The sample three-day date window is unchanged."],
   [5, "Chief complaint dropdown", "Demo complete", "Uses the existing portal’s 17 reference values, with the selected description in review."],
   [6, "OHI dental history synchronization", "Integration verification pending", "Extracted teeth are blocked using fictional history. Automatic synchronization and live OHI rules cannot be verified in this browser-only demo."],
-  [7, "Permanent / Temporary charts", "Demo complete; age assumption pending", "Add/Edit share a manual chart selector. Age supplies the initial default: below 12 Temporary, 12+ Permanent. The cutoff remains a business assumption."],
+  [7, "Permanent / Temporary charts", "Demo complete; age assumption pending", "For individual teeth, Add/Edit share a manual chart selector; quadrant procedures show only four quadrants. Age supplies the initial default: below 12 Temporary, 12+ Permanent. The cutoff remains a business assumption."],
   [8, "Hide selected procedures", "Demo complete with agreed exception", "Selected site-free procedures are hidden from Add. A procedure remains available for another tooth/quadrant, as explicitly requested; duplicate procedure + site is blocked."],
   [9, "Prevent repeated teeth", "Demo complete", "A tooth cannot be selected on two lines, even for different procedures or doctors. Extracted and already-used teeth are disabled."],
   [10, "PhilHealth and Senior Citizen", "Demo complete", "PhilHealth on every Dental, OP Lab, IP and ER line. Senior Citizen enables at age 60+ for every LOA type. Amounts remain manual PHP entries."],

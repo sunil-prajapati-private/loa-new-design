@@ -139,7 +139,7 @@ test('Incomplete charges or deductions stay pending instead of displaying partia
 });
 
 
-test('Permanent and temporary teeth have distinct quadrants and validate against their chart', () => {
+test('Teeth validate against the chosen chart while quadrants are independent of dentition', () => {
   assert.equal(TOOTH_CHARTS.permanent.rows.flat().length, 32);
   assert.equal(TOOTH_CHARTS.temporary.rows.flat().length, 20);
   const temporary = newLine('d1', diagnoses, { code: 'DEMO-D03', dentition: 'temporary', site: '55' });
@@ -147,7 +147,9 @@ test('Permanent and temporary teeth have distinct quadrants and validate against
   assert.equal(siteLabel(temporary), 'Tooth 55 · Temporary teeth');
   assert(lineErrors({ ...temporary, site: '16' }, 'DENT', MEMBERS[3]).some(message => message.includes('selected dental chart')));
   assert(lineErrors({ ...temporary, dentition: 'permanent' }, 'DENT', MEMBERS[3]).some(message => message.includes('selected dental chart')));
-  assert.equal(siteLabel(newLine('d1', diagnoses, { code: 'DEMO-D06', dentition: 'temporary', site: 'UR' })), 'Quadrant UR · Temporary teeth');
+  const quadrant = newLine('d1', diagnoses, { code: 'DEMO-D06', dentition: null, site: 'UR' });
+  assert.equal(siteLabel(quadrant), 'Quadrant UR');
+  assert.deepEqual(lineErrors(quadrant, 'DENT', MEMBERS[0]), []);
 });
 
 test('A retained Senior Citizen deduction cannot pass after switching to a younger member', () => {

@@ -147,6 +147,8 @@ try {
   await page.getByRole("button", { name: "Add procedure", exact: true }).click();
   await expect(page.locator(".procedure-line")).toHaveCount(4);
   await page.getByRole("button", { name: "Edit line 2", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Permanent teeth", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Temporary teeth", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Lower left LL" }).click();
   await page.locator(".procedure-dialog .deductions summary").click();
   await expect(page.getByRole("checkbox", { name: "PhilHealth", exact: true })).toBeVisible();
@@ -308,7 +310,7 @@ try {
   }
   await page.getByRole("button", { name: "Review request", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Tooth 55 · Temporary teeth");
-  await expect(page.getByRole("dialog")).toContainText("Quadrant UR · Temporary teeth");
+  await expect(page.getByRole("dialog")).toContainText("Quadrant UR");
   await page.getByRole("button", { name: "Back to edit" }).click();
   await page.setViewportSize({ width: 375, height: 812 });
   await page.getByRole("button", { name: "Edit line 1", exact: true }).click();

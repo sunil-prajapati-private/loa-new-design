@@ -164,3 +164,5 @@ The **Review notes → 26-point review verification** table is the current statu
 Unresolved items are OHI Internal Remarks/history integration (1/6), business confirmation of the age default (7), actual room-specific rates (12), body-part grouping (14), related Surgical CPT/supply mappings and UAT verification (15), and provider-rate loading (19). ECU remains out of scope (16). Dates in the review are reported targets, not verified delivery commitments.
 
 Coverage: domain tests and browser journeys include blank-draft Z71.1 seeding, replacement, context changes, consultation-specific catalogue filtering, ER procedures/room/PhilHealth/PAC, selected-option filtering, four diagnosis ranks, and the 26-point checklist, alongside the existing Dental, room, contact, popup and claim journeys.
+
+Quadrant follow-up: Permanent / Temporary selection now appears only for individual-tooth procedures. Add and Edit show four quadrant choices directly for quadrant procedures, with no dentition label or requirement in the picker, cards, summary or review. Tooth charts and age defaults are unchanged.

@@ -24,7 +24,7 @@ export function alignRoomLine(line, type) {
   return { ...line, providerRoomTypeCode: room?.value ?? "", providerRoomType: room?.roomHierarchyLabel ?? room?.value ?? "" };
 }
 export const toothChartFor = (line) => TOOTH_CHARTS[line.dentition ?? "permanent"];
-export const siteLabel = (line) => !line.site ? "" : (procedureFor(line)?.site === "tooth" ? "Tooth " : "Quadrant ") + line.site + " · " + (toothChartFor(line)?.label ?? "Choose dental chart");
+export const siteLabel = (line) => !line.site ? "" : procedureFor(line)?.site === "tooth" ? "Tooth " + line.site + " · " + (toothChartFor(line)?.label ?? "Choose dental chart") : "Quadrant " + line.site;
 export function ageAtDate(dob, date) {
   if (!dob || !date || dob > date) return null;
   const age = Number(date.slice(0, 4)) - Number(dob.slice(0, 4)) - (date.slice(5) < dob.slice(5) ? 1 : 0);
@@ -128,7 +128,7 @@ export function lineErrors(line, type, member, context) {
   if (context?.diagnoses && line.diagnoses.some((code) => !context.diagnoses.some((dx) => dx.code === code))) errors.push("Select diagnoses from the current request.");
   if (type === "EMERG" && line.diagnoses.some((code) => ER_EXCLUDED_DIAGNOSES.has(code))) errors.push("Select an applicable Emergency diagnosis.");
   if (procedure.site !== "none" && !line.site) errors.push("Select one " + procedure.site + ".");
-  if (type === "DENT" && procedure.site !== "none") {
+  if (type === "DENT" && procedure.site === "tooth") {
     if (!dentitionFor(member, context?.date ?? dates()[0])) errors.push("Verify the member and availment date before selecting a dental site.");
     if (!toothChartFor(line)) errors.push("Select a Permanent or Temporary dental chart.");
   }
